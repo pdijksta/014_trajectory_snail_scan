@@ -5,6 +5,12 @@ def eps_norm_to_geo(eps_norm, energy_eV):
     m_e_eV = m_e*c**2/e
     return eps_norm/(energy_eV/m_e_eV)
 
+def calc_r(beta0, alpha0, mu0, beta1, alpha1, mu1):
+    delta_mu = mu1 - mu0
+    r12 = np.sqrt(beta1*beta0) * np.sin(delta_mu)
+    r22 = np.sqrt(beta0/beta1) * (np.cos(delta_mu) - alpha1*np.sin(delta_mu))
+    return r12, r22
+
 class TwissGymnastics:
     def __init__(self, beta, alpha, eps_geo, R12, R22):
         self.beta = beta
