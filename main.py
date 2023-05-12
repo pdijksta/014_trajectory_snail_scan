@@ -1,6 +1,8 @@
 import sys
 import os
-import time
+
+import numpy as np
+import matplotlib
 
 import PyQt5
 import PyQt5.Qt
@@ -9,12 +11,18 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 
 #import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
-import matplotlib
 
-from gui import Ui_MainWindow
 import config
 import beamdynamics
 import devices
+
+if __name__ == '__main__' and os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py'):
+    cmd = 'bash ./ui2py.sh'
+    print(cmd)
+    os.system(cmd)
+
+from gui import Ui_MainWindow
+
 
 
 matplotlib.use('Qt5Agg')
@@ -29,6 +37,8 @@ class Main(QMainWindow):
         #Connect buttons
         self.ui.ResetButton.clicked.connect(self.initialize)
         self.ui.RestoreCorrectorsButton.clicked.connect(self.restore_correctors)
+        self.ui.CalcCorrAnglesButton.clicked.connect(self.calc_corr_angles)
+        self.ui.CalcAPhiButton.clicked.connect(self.calc_A_phi)
 
         #Initialize GUI
         self.ui.BeamlineSelect.addItems(config.beamlines)
@@ -37,9 +47,14 @@ class Main(QMainWindow):
         self.disable_buttons = [
             self.ui.StartMeasurementButton,
             self.ui.RestoreCorrectorsButton,
+            self.ui.CalcCorrAnglesButton,
+            self.ui.CalcAPhiButton
             ]
         for button in self.disable_buttons:
             button.setEnabled(False)
+
+        self.ui.CorrAngleResult.setText('Result:')
+        self.ui.A_Phi_Result.setText('Result:')
 
     def initialize(self):
         beamline = self.ui.BeamlineSelect.currentText()
@@ -66,24 +81,38 @@ class Main(QMainWindow):
 
         info = [
                 'Information on tool status',
-                'Correctors (init values)',
-                '%s %.3f mrad' % (self.correctors[0], self.init_values[0]*1e3),
-                '%s %.3f mrad' % (self.correctors[1], self.init_values[1]*1e3),
+                'Correctors: init value (mrad); β (m); α',
                 ]
+        for n, (beta, alpha) in enumerate([
+                (beta0, alpha0),
+                (beta1, alpha1),
+                ]):
+            corr_info = 'c%i %s: %+.4f; %.1f; %+.2f' % (n, self.correctors[0], self.init_values[n]*1e3, beta, alpha)
+            info.append(corr_info)
         self.ui.InformationLabel.setText('\n'.join(info))
 
     def restore_correctors(self):
         for corr, init_val in zip(self.correctors, self.init_values):
             self.mi.write_corrector(corr, init_val)
 
+    def calc_corr_angles(self):
+        A = self.ui.A_calc.value()
+        phi = self.ui.Phi_calc.value()/180*np.pi
+        x, xp = self.tg.Aphi_to_trajoffset(A, phi)
+        c0, c1 = self.tg.trajoffset_to_corrangle(x, xp)
+        self.ui.CorrAngleResult.setText('A=%.3f, ψ=%.1f deg --> Δc0=%.5f mrad, Δc1=%.5f mrad' % (A, phi*180/np.pi, c0*1e3, c1*1e3))
+
+    def calc_A_phi(self):
+        c0 = self.ui.C0_calc.value()/1e3
+        c1 = self.ui.C1_calc.value()/1e3
+        x, xp = self.tg.corrangle_to_trajoffset(c0, c1)
+        A, phi = self.tg.trajoffset_to_Aphi(x, xp)
+        self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
+
+
 
 if __name__ == "__main__":
 
-    if os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py'):
-        cmd = 'bash ./ui2py.sh'
-        print(cmd)
-        os.system(cmd)
-        time.sleep(1)
 
     # for pdb to work
     PyQt5.QtCore.pyqtRemoveInputHook()

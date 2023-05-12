@@ -46,13 +46,13 @@ class TwissGymnastics:
         return x, xp
 
     def trajoffset_to_corrangle(self, x, xp):
-        angle1 = x/self.R12
-        angle2 = -self.R22/self.R12 * x + xp
-        return angle1, angle2
+        angle0 = x/self.R12
+        angle1 = -self.R22/self.R12 * x + xp
+        return angle0, angle1
 
-    def corrangle_to_trajoffset(self, angle1, angle2):
-        x = self.R12*angle1
-        xp = self.R22*angle1 + angle2
+    def corrangle_to_trajoffset(self, angle0, angle1):
+        x = self.R12*angle0
+        xp = self.R22*angle0 + angle1
         return x, xp
 
     def gen_Aphi_range(self, A_min, A_max, A_points, phi_points):
@@ -67,8 +67,8 @@ class TwissGymnastics:
         corr_angles = np.zeros([A_arr.size, phi_arr.size, 2])
         for n_A, A in enumerate(A_arr):
             x_arr, xp_arr = self.Aphi_to_trajoffset(A, phi_arr)
-            angle1, angle2 = self.trajoffset_to_corrangle(x_arr, xp_arr)
-            corr_angles[n_A,:,0] = angle1
-            corr_angles[n_A,:,1] = angle2
+            angle0, angle1 = self.trajoffset_to_corrangle(x_arr, xp_arr)
+            corr_angles[n_A,:,0] = angle0
+            corr_angles[n_A,:,1] = angle1
         return corr_angles
 
