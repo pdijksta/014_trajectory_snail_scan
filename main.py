@@ -103,13 +103,13 @@ class Main(QMainWindow):
         A = self.ui.A_calc.value()
         phi = self.ui.Phi_calc.value()/180*np.pi
         x, xp = self.tg.Aphi_to_trajoffset(A, phi)
-        c0, c1 = self.tg.trajoffset_to_corrangle(x, xp)
+        c0, c1 = self.tg.trajoffset_to_corr(x, xp)
         self.ui.CorrAngleResult.setText('A=%.3f, ψ=%.1f deg --> Δc0=%.5f mrad, Δc1=%.5f mrad' % (A, phi*180/np.pi, c0*1e3, c1*1e3))
 
     def calc_A_phi(self):
         c0 = self.ui.C0_calc.value()/1e3
         c1 = self.ui.C1_calc.value()/1e3
-        x, xp = self.tg.corrangle_to_trajoffset(c0, c1)
+        x, xp = self.tg.corr_to_trajoffset(c0, c1)
         A, phi = self.tg.trajoffset_to_Aphi(x, xp)
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
@@ -120,7 +120,7 @@ class Main(QMainWindow):
         phi_steps = self.ui.Phi_steps.value()
 
         A_range, phi_range = self.tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
-        delta_corr_arr = self.tg.Aphi_range_to_corrangles(A_range, phi_range)
+        delta_corr_arr = self.tg.Aphi_range_to_corr(A_range, phi_range)
 
 
 if __name__ == "__main__":
