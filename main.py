@@ -23,10 +23,7 @@ if __name__ == '__main__' and os.path.getmtime('./gui.ui') > os.path.getmtime('.
 
 from gui import Ui_MainWindow
 
-
-
 matplotlib.use('Qt5Agg')
-
 
 class Main(QMainWindow):
     def __init__(self):
@@ -39,6 +36,7 @@ class Main(QMainWindow):
         self.ui.RestoreCorrectorsButton.clicked.connect(self.restore_correctors)
         self.ui.CalcCorrAnglesButton.clicked.connect(self.calc_corr_angles)
         self.ui.CalcAPhiButton.clicked.connect(self.calc_A_phi)
+        self.ui.StartMeasurementButton.clicked.connect(self.measurement)
 
         #Initialize GUI
         self.ui.BeamlineSelect.addItems(config.beamlines)
@@ -53,10 +51,13 @@ class Main(QMainWindow):
         for button in self.disable_buttons:
             button.setEnabled(False)
 
-        self.ui.CorrAngleResult.setText('Result:')
-        self.ui.A_Phi_Result.setText('Result:')
+        # Always show first tab on startup
+        self.ui.tabWidget.setCurrentIndex(0)
 
     def initialize(self):
+        """
+        Initializes self.mi, self.tg and sets init corrector values.
+        """
         beamline = self.ui.BeamlineSelect.currentText()
         plane = self.ui.PlaneSelect.currentText()
         dry_run = self.ui.DryRunCheck.isChecked()
@@ -91,6 +92,9 @@ class Main(QMainWindow):
             info.append(corr_info)
         self.ui.InformationLabel.setText('\n'.join(info))
 
+        self.ui.CorrAngleResult.setText('Result:')
+        self.ui.A_Phi_Result.setText('Result:')
+
     def restore_correctors(self):
         for corr, init_val in zip(self.correctors, self.init_values):
             self.mi.write_corrector(corr, init_val)
@@ -109,11 +113,17 @@ class Main(QMainWindow):
         A, phi = self.tg.trajoffset_to_Aphi(x, xp)
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
+    def measurement(self):
+        a_min = self.ui.A_min.value()
+        a_max = self.ui.A_max.value()
+        a_steps = self.ui.A_steps.value()
+        phi_steps = self.ui.Phi_steps.value()
+
+        A_range, phi_range = self.tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
+        delta_corr_arr = self.tg.Aphi_range_to_corrangles(A_range, phi_range)
 
 
 if __name__ == "__main__":
-
-
     # for pdb to work
     PyQt5.QtCore.pyqtRemoveInputHook()
 

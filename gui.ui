@@ -267,7 +267,7 @@ If steps=1, takes min value only</string>
        <string>Phase points in 2π range</string>
       </property>
      </widget>
-     <widget class="QSpinBox" name="Phase_steps">
+     <widget class="QSpinBox" name="Phi_steps">
       <property name="geometry">
        <rect>
         <x>662</x>
