@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>681</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
       <x>10</x>
       <y>0</y>
       <width>771</width>
-      <height>541</height>
+      <height>621</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -624,10 +624,10 @@ If steps=1, takes min value only</string>
      <widget class="QWidget" name="gridLayoutWidget_2">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>751</width>
-        <height>491</height>
+        <x>0</x>
+        <y>0</y>
+        <width>771</width>
+        <height>591</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="PerformanceLayout"/>
@@ -640,10 +640,10 @@ If steps=1, takes min value only</string>
      <widget class="QWidget" name="gridLayoutWidget">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>751</width>
-        <height>451</height>
+        <x>0</x>
+        <y>0</y>
+        <width>771</width>
+        <height>591</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="OrbitLayout"/>
