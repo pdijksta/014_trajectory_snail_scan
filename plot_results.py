@@ -117,7 +117,7 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
                 ]:
             sp.plot(xx, xxpp, ls='--', label=A)
             if np.any(notnan):
-                sp.scatter(xx[notnan], xxpp[notnan], c=pulse_ene_mean[notnan])
+                sp.scatter(xx[notnan], xxpp[notnan], c=pulse_ene_mean[notnan], zorder=100)
 
     all_pulse_ene = result_dict['data']['pulse_ene_mean'].ravel()
     notnan = ~np.isnan(all_pulse_ene)
