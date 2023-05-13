@@ -8,7 +8,7 @@ class MeasWorker(WorkerBase):
     def func(self, dry_run, tg, mi, correctors, init_values, a_min, a_max, a_steps, phi_steps, settle_time, measurement_time):
 
         A_range, phi_range = tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
-        delta_corr_arr = tg.Aphi_range_to_corr(A_range, phi_range)
+        delta_corr_arr, xxp_arr = tg.Aphi_range_to_corr(A_range, phi_range)
 
         pulse_ene_mean = np.full([len(A_range), len(phi_range)], np.nan, dtype=float)
         pulse_ene_std = pulse_ene_mean.copy()
@@ -81,6 +81,13 @@ class MeasWorker(WorkerBase):
                     'init_corrector_vals': init_values,
                     'beamline': mi.beamline,
                     'plane': mi.plane,
+                    'emit_geo': tg.emit_geo,
+                    'emit_norm': tg.emit_norm,
+                    'energy_eV': tg.energy_eV,
+                    'beta': tg.beta,
+                    'alpha': tg.alpha,
+                    'R12': tg.R12,
+                    'R22': tg.R22,
                     },
                 'data': {
                     'pulse_ene_mean': pulse_ene_mean,
@@ -90,6 +97,7 @@ class MeasWorker(WorkerBase):
                     'A': A_range,
                     'phi': phi_range,
                     'delta_corr_angles': delta_corr_arr,
+                    'delta_xxp': xxp_arr,
                     },
                 }
 

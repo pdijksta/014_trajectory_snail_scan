@@ -4,6 +4,7 @@ import os
 
 import numpy as np
 import matplotlib
+import matplotlib.pyplot as plt
 
 import PyQt5
 import PyQt5.Qt
@@ -18,6 +19,7 @@ import measurement
 import config
 import beamdynamics
 import devices
+import plot_results
 
 if __name__ == '__main__' and (not os.path.isfile('./gui.py') or os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py')):
     cmd = 'bash ./ui2py.sh'
@@ -80,11 +82,10 @@ class Main(QMainWindow):
 
         eps_norm = self.ui.emit_norm_nm.value()*1e-9
 
-        eps_geo = beamdynamics.eps_norm_to_geo(eps_norm, energy_eV)
         beta0, alpha0, mu0 = config.corrector_beta_alpha_mu[self.correctors[0]]
         beta1, alpha1, mu1 = config.corrector_beta_alpha_mu[self.correctors[1]]
         r12, r22 = beamdynamics.calc_r(beta0, alpha0, mu0, beta1, alpha1, mu1)
-        self.tg = beamdynamics.TwissGymnastics(beta1, alpha1, eps_geo, r12, r22)
+        self.tg = beamdynamics.TwissGymnastics(beta1, alpha1, eps_norm, energy_eV, r12, r22)
 
         self.ui.StatusLabel.setText('Tool initalized. DRY_RUN=%i' % self.dry_run)
         for button in self.disable_buttons:
@@ -124,11 +125,12 @@ class Main(QMainWindow):
         A, phi = self.tg.trajoffset_to_Aphi(x, xp)
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
-    def measurement_post(self):
+    def post_measurement(self):
         print('Post measurement called')
         self.result_dict = self.func_worker.result_dict
-        #self.func_worker = None
-        #self.func_thread = None
+        plot_results.plot_Aphi_scan(self.result_dict)
+        plt.show()
+
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
@@ -169,7 +171,7 @@ class Main(QMainWindow):
                 self.ui.SettleTime.value(),
                 self.ui.MeasurementTime.value(),
                 )
-        self.threaded_func(measurement.MeasWorker, args, {}, self.measurement_post)
+        self.threaded_func(measurement.MeasWorker, args, {}, self.post_measurement)
 
     def abort_measurement(self):
         self.func_worker.abort = True

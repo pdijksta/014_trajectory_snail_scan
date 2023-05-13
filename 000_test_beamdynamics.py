@@ -15,7 +15,7 @@ tg = beamdynamics.TwissGymnastics(beta, alpha, eps_geo, r12, r22)
 a_arr = np.array([0.5, 1, 1.5])
 phi_arr = np.linspace(-np.pi, np.pi, 11)[:10]
 
-corr_angles = tg.Aphi_range_to_corr(a_arr, phi_arr)
+corr_angles, _ = tg.Aphi_range_to_corr(a_arr, phi_arr)
 
 
 corrs0, corrs1 = np.random.rand(100), np.random.rand(100)
