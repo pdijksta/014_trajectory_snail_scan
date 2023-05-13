@@ -1,5 +1,4 @@
 import numpy as np
-
 import config
 
 try:
@@ -22,7 +21,7 @@ class XFEL_interface:
         self.pulse_energy_ch = config.fast_xgm_ch[self.beamline]
 
     def read_ch(self, ch):
-        if not self.dry_run:
+        if hasdoocs:
             return read(ch)['data']
 
         if ch.endswith('KICK_MRAD.SP'):
@@ -73,5 +72,4 @@ class XFEL_interface:
 
     def read_pulse_energy(self):
         return self.read_ch(self.pulse_energy_ch)/1e6
-
 

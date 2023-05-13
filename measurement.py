@@ -3,7 +3,33 @@ import numpy as np
 
 from workers import WorkerBase
 
+def read(parent, mi, measurement_time):
+    this_pulse_energy = []
+    this_orbit = []
+    time_begin = time_now = time.time()
+    time_end = time_begin + measurement_time
+    while time_now < time_end:
+        if parent.abort:
+            break
+        bpm_names, orbit_vals = mi.read_orbit()
+        pulse_energy_vals = mi.read_pulse_energy()
+
+        this_orbit.append(orbit_vals)
+        this_pulse_energy.append(pulse_energy_vals)
+
+        time_prev = time_now
+        time_now = time.time()
+        delta = time_prev + 0.1 - time_now
+        if parent.abort:
+            break
+        if delta > 0:
+            time.sleep(delta)
+            time_now += delta
+    return bpm_names, np.array(this_orbit), np.array(this_pulse_energy)
+
+
 class MeasWorker(WorkerBase):
+
 
     def func(self, dry_run, tg, mi, correctors, init_values, a_min, a_max, a_steps, phi_steps, settle_time, measurement_time):
 
@@ -13,9 +39,11 @@ class MeasWorker(WorkerBase):
         pulse_ene_mean = np.full([len(A_range), len(phi_range)], np.nan, dtype=float)
         pulse_ene_std = pulse_ene_mean.copy()
 
-        n_meas = len(A_range)*len(phi_range)
+
+        bpm_names, init_orbit, init_pulse_energy = read(self, mi, measurement_time)
 
         ctr = 0
+        n_meas = len(A_range)*len(phi_range)
         for n_A, A in enumerate(A_range):
             if self.abort:
                 break
@@ -23,44 +51,24 @@ class MeasWorker(WorkerBase):
                 if self.abort:
                     break
 
-                this_pulse_energy = []
-                this_orbit = []
 
                 delta_corr = delta_corr_arr[n_A, n_phi]
                 for corr, init, delta in zip(correctors, init_values, delta_corr):
                     mi.write_corrector(corr, init+delta)
 
-                if not dry_run:
-                    time.sleep(settle_time)
-
-                time_begin = time_now = time.time()
-                time_end = time_begin + measurement_time
-                while time_now < time_end:
-                    if self.abort:
+                time_end = time.time() + settle_time
+                while time.time() < time_end:
+                    time.sleep(0.1)
+                    if self.abort or dry_run:
                         break
-                    bpm_names, orbit_vals = mi.read_orbit()
-                    pulse_energy_vals = mi.read_pulse_energy()
-                    if ctr == 0:
-                        orbit_mean = np.full([len(A_range), len(phi_range), len(orbit_vals)], np.nan, dtype=float)
-                        orbit_std = orbit_mean.copy()
 
-                    this_orbit.append(orbit_vals)
-                    this_pulse_energy.append(pulse_energy_vals)
+                bpm_names, this_orbit, this_pulse_energy = read(self, mi, measurement_time)
 
-                    time_prev = time_now
-                    time_now = time.time()
-                    delta = time_prev + 0.1 - time_now
-                    if self.abort:
-                        break
-                    if delta > 0:
-                        time.sleep(delta)
-                        time_now += delta
-
+                if ctr == 0:
+                    orbit_mean = np.full([len(A_range), len(phi_range), this_orbit.shape[1]], np.nan, dtype=float)
+                    orbit_std = orbit_mean.copy()
                 if self.abort:
                     break
-
-                this_pulse_energy = np.array(this_pulse_energy)
-                this_orbit = np.array(this_orbit)
 
                 pulse_ene_mean[n_A, n_phi] = np.mean(this_pulse_energy)
                 pulse_ene_std[n_A, n_phi] = np.std(this_pulse_energy)
@@ -99,6 +107,8 @@ class MeasWorker(WorkerBase):
                     'delta_corr_angles': delta_corr_arr,
                     'delta_xxp': xxp_arr,
                     'bpm_names': bpm_names,
+                    'init_orbit': np.mean(init_orbit, axis=0),
+                    'init_pulse_energy': np.mean(init_pulse_energy, axis=0),
                     },
                 }
 
