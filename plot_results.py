@@ -31,8 +31,8 @@ elif 'xfelbkr' in gethostname():
     MARKERSIZE = 2
     LEFT = 0.15
     RIGHT = 0.85
-    BOTTOM = 0.85
-    HSPACE = 0.65
+    BOTTOM = 0.75
+    HSPACE = 0.75
 
     plt.rc('font', size=SMALL_SIZE)
     plt.rc('axes', titlesize=SMALL_SIZE)
