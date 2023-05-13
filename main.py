@@ -134,11 +134,10 @@ class Main(QMainWindow):
 
     def post_measurement(self):
         print('Post measurement called')
-        self.result_dict = self.func_worker.result_dict
+        self.result_dict = self.func_worker.outp
         self.restore_correctors()
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
-        #plt.show()
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)

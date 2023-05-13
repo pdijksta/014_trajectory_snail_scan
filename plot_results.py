@@ -114,9 +114,11 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
     notnan = ~np.isnan(all_pulse_ene)
     if np.any(notnan):
         all_pulse_ene = all_pulse_ene[notnan]
-        norm = Normalize(vmin=all_pulse_ene.min(), vmax=all_pulse_ene.max())
+        norm = Normalize(vmin=all_pulse_ene.min()*1e3, vmax=all_pulse_ene.max()*1e3)
         mappable = cm.ScalarMappable(norm=norm)
         fig.colorbar(mappable, ax=[sp_ellipse, sp_ellipse_norm])
+
+    sp_A.axhline(result_dict['data']['init_pulse_energy']*1e3, color='black', ls='--', label=0)
 
     for _sp in sp_ellipse, sp_A:
         _sp.legend(title='A')

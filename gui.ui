@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -264,7 +264,7 @@ If steps=1, takes min value only</string>
        </rect>
       </property>
       <property name="text">
-       <string>Phase points in 2π range</string>
+       <string>Phase step num (in 2π range)</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="Phi_steps">

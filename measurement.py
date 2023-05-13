@@ -6,6 +6,7 @@ from workers import WorkerBase
 def read(parent, mi, measurement_time):
     this_pulse_energy = []
     this_orbit = []
+    bpm_names = []
     time_begin = time_now = time.time()
     time_end = time_begin + measurement_time
     while time_now < time_end:
@@ -30,7 +31,6 @@ def read(parent, mi, measurement_time):
 
 class MeasWorker(WorkerBase):
 
-
     def func(self, dry_run, tg, mi, correctors, init_values, a_min, a_max, a_steps, phi_steps, settle_time, measurement_time):
 
         A_range, phi_range = tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
@@ -42,6 +42,7 @@ class MeasWorker(WorkerBase):
 
         bpm_names, init_orbit, init_pulse_energy = read(self, mi, measurement_time)
 
+        orbit_mean, orbit_std = None, None
         ctr = 0
         n_meas = len(A_range)*len(phi_range)
         for n_A, A in enumerate(A_range):
@@ -67,6 +68,7 @@ class MeasWorker(WorkerBase):
                 if ctr == 0:
                     orbit_mean = np.full([len(A_range), len(phi_range), this_orbit.shape[1]], np.nan, dtype=float)
                     orbit_std = orbit_mean.copy()
+
                 if self.abort:
                     break
 
@@ -79,7 +81,7 @@ class MeasWorker(WorkerBase):
                 print('Measurement %i out of %i done.' % (ctr, n_meas))
                 self.progress.emit((ctr*100)//n_meas)
 
-        self.result_dict = {
+        result_dict = {
                 'input': {
                     'A_min_max_steps': [a_min, a_max, a_steps],
                     'phi_steps': phi_steps,
@@ -108,7 +110,8 @@ class MeasWorker(WorkerBase):
                     'delta_xxp': xxp_arr,
                     'bpm_names': bpm_names,
                     'init_orbit': np.mean(init_orbit, axis=0),
-                    'init_pulse_energy': np.mean(init_pulse_energy, axis=0),
+                    'init_pulse_energy': np.mean(init_pulse_energy),
                     },
                 }
+        return result_dict
 
