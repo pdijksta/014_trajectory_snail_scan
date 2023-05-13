@@ -63,11 +63,11 @@ class Main(QMainWindow):
             self.ui.RestoreCorrectorsButton,
             self.ui.CalcCorrAnglesButton,
             self.ui.CalcAPhiButton,
-            self.ui.LogbookButton,
             ]
         for button in self.disable_buttons:
             button.setEnabled(False)
         self.ui.AbortMeasurementButton.setEnabled(False)
+        self.ui.LogbookButton.setEnabled(False)
 
         # Meas_lock must be false
         self.meas_lock = False
@@ -103,6 +103,7 @@ class Main(QMainWindow):
         self.ui.StatusLabel.setText('Tool initalized. DRY_RUN=%i' % self.dry_run)
         for button in self.disable_buttons:
             button.setEnabled(True)
+        self.ui.LogbookButton.setEnabled(False)
 
         info = [
                 'Information on tool status',
@@ -145,6 +146,7 @@ class Main(QMainWindow):
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
         self.ui.tabWidget.setCurrentIndex(1)
+        self.ui.LogbookButton.setEnabled(False)
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
@@ -247,7 +249,7 @@ class Main(QMainWindow):
         comment = dlg.textValue()
 
         filename = self.save_result()
-        text = 'Data is saved in %s' % filename
+        text = 'Data is saved in %s' % os.path.abspath(filename)
         if ok:
             text = comment + "\n" +"\n" + text
         text = auto_comment + text
