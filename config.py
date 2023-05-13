@@ -56,4 +56,4 @@ bpm_channels = {
         'SASE3': 'BPM',
         }
 
-energy_ch = lambda beamline: 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/T4/ENERGY.SA%i' % int(beamline[-1])
+energy_ch = lambda beamline: 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/CL/ENERGY.SA%i' % int(beamline[-1])
