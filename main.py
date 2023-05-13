@@ -14,7 +14,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication
 #import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
-import workers
+import measurement
 import config
 import beamdynamics
 import devices
@@ -42,7 +42,8 @@ class Main(QMainWindow):
         self.ui.RestoreCorrectorsButton.clicked.connect(self.restore_correctors)
         self.ui.CalcCorrAnglesButton.clicked.connect(self.calc_corr_angles)
         self.ui.CalcAPhiButton.clicked.connect(self.calc_A_phi)
-        self.ui.StartMeasurementButton.clicked.connect(self.measurement)
+        self.ui.StartMeasurementButton.clicked.connect(self.do_measurement)
+        self.ui.AbortMeasurementButton.clicked.connect(self.abort_measurement)
 
         #Initialize GUI
         self.ui.BeamlineSelect.addItems(config.beamlines)
@@ -71,7 +72,7 @@ class Main(QMainWindow):
         self.plane = self.ui.PlaneSelect.currentText()
         self.dry_run = self.ui.DryRunCheck.isChecked()
 
-        self.mi = devices.XFEL_interface(self.dry_run, self.beamline)
+        self.mi = devices.XFEL_interface(self.dry_run, self.beamline, self.plane)
         self.correctors = config.corrector_names[self.beamline][self.plane]
         self.init_values = [self.mi.read_corrector(x) for x in self.correctors]
 
@@ -91,7 +92,7 @@ class Main(QMainWindow):
 
         info = [
                 'Information on tool status',
-                'Correctors: init value (mrad); β (m); α',
+                'Correctors: init val (mrad); β (m); α',
                 ]
         for n, (beta, alpha) in enumerate([
                 (beta0, alpha0),
@@ -124,7 +125,10 @@ class Main(QMainWindow):
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
     def measurement_post(self):
-        pass
+        print('Post measurement called')
+        self.result_dict = self.func_worker.result_dict
+        #self.func_worker = None
+        #self.func_thread = None
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
@@ -142,29 +146,42 @@ class Main(QMainWindow):
         self.func_thread.started.connect(self.func_worker.run)
         self.func_thread.finished.connect(self.unlock_meas)
 
+        self.func_worker.progress.connect(self.measurement_progress)
+
         self.func_worker.finished.connect(post_func)
         self.func_worker.finished.connect(self.func_thread.quit)
+        self.func_worker.finished.connect(self.func_thread.wait)
         self.func_worker.finished.connect(self.func_thread.deleteLater)
-        self.func_worker.progress.connect(self.measurement_progress)
 
         self.func_thread.start()
 
-    def measurement(self):
-        a_min = self.ui.A_min.value()
-        a_max = self.ui.A_max.value()
-        a_steps = self.ui.A_steps.value()
-        phi_steps = self.ui.Phi_steps.value()
-        settle_time = self.ui.SettleTime.value()
-        measurement_time = self.ui.MeasurementTime.value()
-        self.threaded_func(workers.MeasWorker, (self, a_min, a_max, a_steps, phi_steps, settle_time, measurement_time), {}, self.measurement_post)
+    def do_measurement(self):
+        args = (
+                self.dry_run,
+                self.tg,
+                self.mi,
+                self.correctors,
+                self.init_values,
+                self.ui.A_min.value(),
+                self.ui.A_max.value(),
+                self.ui.A_steps.value(),
+                self.ui.Phi_steps.value(),
+                self.ui.SettleTime.value(),
+                self.ui.MeasurementTime.value(),
+                )
+        self.threaded_func(measurement.MeasWorker, args, {}, self.measurement_post)
 
+    def abort_measurement(self):
+        self.func_worker.abort = True
 
     def lock_meas(self):
+        self.ui.ResetButton.setEnabled(False)
         self.ui.StartMeasurementButton.setEnabled(False)
         self.ui.AbortMeasurementButton.setEnabled(True)
         self.meas_lock = True
 
     def unlock_meas(self):
+        self.ui.ResetButton.setEnabled(True)
         self.ui.StartMeasurementButton.setEnabled(True)
         self.ui.AbortMeasurementButton.setEnabled(False)
         self.meas_lock = False

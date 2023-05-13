@@ -10,11 +10,12 @@ except ImportError:
     hasdoocs = False
 
 class XFEL_interface:
-    def __init__(self, dry_run, beamline):
+    def __init__(self, dry_run, beamline, plane):
         if not hasdoocs:
             dry_run = True
         self.dry_run = dry_run
         self.beamline = beamline
+        self.plane = plane
         self.orbit_fb_channel = config.orbit_fb_channels[self.beamline]
         self.energy_ch = config.energy_ch(self.beamline)
         self.bpm_channels = config.bpm_channels[self.beamline]
