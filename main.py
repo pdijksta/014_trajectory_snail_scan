@@ -133,11 +133,11 @@ class Main(QMainWindow):
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
     def post_measurement(self):
-        print('Post measurement called')
         self.result_dict = self.func_worker.outp
         self.restore_correctors()
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
+        self.ui.tabWidget.setCurrentIndex(1)
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)

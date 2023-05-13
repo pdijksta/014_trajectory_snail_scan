@@ -113,5 +113,6 @@ class MeasWorker(WorkerBase):
                     'init_pulse_energy': np.mean(init_pulse_energy),
                     },
                 }
+        print('Measurement complete')
         return result_dict
 
