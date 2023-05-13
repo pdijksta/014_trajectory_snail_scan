@@ -33,7 +33,7 @@ elif 'xfelbkr' in gethostname():
     RIGHT = 0.9
     BOTTOM = 0.15
     WSPACE = 0.5
-    HSPACE = 0.75
+    HSPACE = 0.55
 
     plt.rc('font', size=SMALL_SIZE)
     plt.rc('axes', titlesize=SMALL_SIZE)
@@ -112,13 +112,13 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
         xp = result_dict['data']['delta_xxp'][n_A,:,1]
         xs, xps = rescale_xxp(x, xp)
 
-        for sp, xx, xxpp in [
-                (sp_ellipse, x, xp),
-                (sp_ellipse_norm, xs, xps),
+        for sp, xx, xxpp, factor in [
+                (sp_ellipse, x, xp, 1e6),
+                (sp_ellipse_norm, xs, xps, 1),
                 ]:
-            sp.plot(xx, xxpp, ls='--', label=A)
+            sp.plot(xx*factor, xxpp*factor, ls='--', label=A)
             if np.any(notnan):
-                sp.scatter(xx[notnan], xxpp[notnan], c=pulse_ene_mean[notnan], zorder=100)
+                sp.scatter(xx[notnan]*factor, xxpp[notnan]*factor, c=pulse_ene_mean[notnan], zorder=100)
 
     all_pulse_ene = result_dict['data']['pulse_ene_mean'].ravel()
     notnan = ~np.isnan(all_pulse_ene)
