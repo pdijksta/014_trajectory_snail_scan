@@ -425,9 +425,9 @@ If steps=1, takes min value only</string>
      <widget class="QPushButton" name="CalcCorrAnglesButton">
       <property name="geometry">
        <rect>
-        <x>690</x>
+        <x>670</x>
         <y>340</y>
-        <width>71</width>
+        <width>91</width>
         <height>23</height>
        </rect>
       </property>
@@ -496,9 +496,9 @@ If steps=1, takes min value only</string>
      <widget class="QPushButton" name="CalcAPhiButton">
       <property name="geometry">
        <rect>
-        <x>690</x>
+        <x>670</x>
         <y>440</y>
-        <width>71</width>
+        <width>91</width>
         <height>23</height>
        </rect>
       </property>
