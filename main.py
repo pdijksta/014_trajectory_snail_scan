@@ -1,6 +1,7 @@
 import sys
 import os
-#import time
+import time
+from pathlib import Path
 
 import numpy as np
 import matplotlib
@@ -10,7 +11,7 @@ import PyQt5
 import PyQt5.Qt
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import QThread
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog
 
 #import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -20,6 +21,7 @@ import config
 import beamdynamics
 import devices
 import plot_results
+import logbook
 
 if __name__ == '__main__' and (not os.path.isfile('./gui.py') or os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py')):
     cmd = 'bash ./ui2py.sh'
@@ -31,6 +33,9 @@ from gui import Ui_MainWindow
 matplotlib.use('Qt5Agg')
 
 class Main(QMainWindow):
+
+    data_dir = './data/'
+
     def __init__(self):
         QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
@@ -46,6 +51,7 @@ class Main(QMainWindow):
         self.ui.CalcAPhiButton.clicked.connect(self.calc_A_phi)
         self.ui.StartMeasurementButton.clicked.connect(self.do_measurement)
         self.ui.AbortMeasurementButton.clicked.connect(self.abort_measurement)
+        self.ui.LogbookButton.clicked.connect(self.do_logbook)
 
         #Initialize some GUI widgets
         self.ui.BeamlineSelect.addItems(config.beamlines)
@@ -216,7 +222,45 @@ class Main(QMainWindow):
         self.ui.PerformanceLayout.addWidget(canvas)
         self.ui.PerformanceLayout.addWidget(toolbar)
 
+    def logbook(self, widget, text=""):
+        screenshot = self.get_screenshot(widget)
 
+        res = logbook.send_to_desy_elog(author='Dr. Snail', title='OrbitSnailScan', severity='INFO', text=text, elog='xfellog', image=screenshot)
+        if not res:
+            print('error during eLogBook sending')
+
+    def log_screen(self, widget, auto_comment=""):
+        #text, ok = QInputDialog().getText(self.Form, "LogBook Comment",
+        #                                  "Comment: ")
+        dlg = QInputDialog(self.Form)
+        dlg.setInputMode(QInputDialog.TextInput)
+        dlg.setLabelText("Comment :")
+        dlg.resize(400, 100)
+        ok = dlg.exec_()
+        comment = dlg.textValue()
+
+        filename = self.save_result()
+        text = 'Data is saved in %s' % filename
+        if ok:
+            text = comment + "\n" +"\n" + text
+        text = auto_comment + text
+        self.logbook(widget, text=text)
+
+    def do_logbook(self):
+        self.ui.tabWidget.setCurrentIndex(1)
+        self.log_screen(self)
+
+    def save_result(self):
+        data = self.result_dict
+        data2 = {}
+        for key1, subdict1 in data.items():
+            for key2, val in subdict1.items():
+                data2['%s/%s' % (key1, key2)] = val
+
+        Path(self.data_dir).mkdir(parents=True, exist_ok=True)
+        filename = self.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_snail_scan.npz"
+        np.savez(filename, **data2)
+        return filename
 
 if __name__ == "__main__":
     # for pdb to work

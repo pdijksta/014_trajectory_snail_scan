@@ -147,7 +147,7 @@ def performance_figure(rec_point, figsize=[10, 12]):
     sp_ellipse_norm = plt.subplot(2, 2, 2)
     sp_ellipse_norm.set_title('Norm. phase space at %s' % rec_point)
     sp_ellipse_norm.set_xlabel(r'$\Delta x/\sqrt{\epsilon\beta}$')
-    sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta x +\Delta x\'\beta)/\sqrt{\epsilon\beta}$')
+    sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta x +\beta\Delta x\')/\sqrt{\epsilon\beta}$')
 
     sp_A = plt.subplot(2, 2, 3)
     sp_A.set_title('Recorded pulse energies')
