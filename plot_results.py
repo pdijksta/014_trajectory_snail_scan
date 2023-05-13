@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.colors import Normalize
 
+LEFT = 0.1
+RIGHT = 0.9
+HSPACE = 0.4
+WSPACE = 0.4
+
 if 'mpyubl38552' in gethostname():
     SMALL_SIZE = 7
     MEDIUM_SIZE = 8
@@ -20,6 +25,11 @@ elif 'xfelbkr' in gethostname():
     SMALL_SIZE = 4
     MEDIUM_SIZE = 5
     BIGGER_SIZE = 6
+    LINEWIDTH = 2
+    MARKERSIZE = 5
+    LEFT = 0.2
+    RIGHT = 0.8
+    WSPACE = 0.55
 
     plt.rc('font', size=SMALL_SIZE)
     plt.rc('axes', titlesize=SMALL_SIZE)
@@ -28,11 +38,7 @@ elif 'xfelbkr' in gethostname():
     plt.rc('ytick', labelsize=SMALL_SIZE)
     plt.rc('legend', fontsize=SMALL_SIZE)
     plt.rc('figure', titlesize=MEDIUM_SIZE)
-
-
-
-
-
+    plt.rc('lines', linwidth=LINEWIDTH, markersize=MARKERSIZE)
 
 def phase_space_ellipse(emittance, beta, alpha, n_points):
 
@@ -125,7 +131,7 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
 
 def performance_figure(rec_point, figsize=[12, 10]):
     fig = plt.figure(figsize=figsize)
-    fig.subplots_adjust(left=0.1, right=0.9, hspace=0.4, wspace=0.4)
+    fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE)
     sp_ellipse = plt.subplot(2, 2, 1)
     sp_ellipse.set_title('Phase space at %s' % rec_point)
     sp_ellipse.set_xlabel('$\Delta x$ ($\mu$m)')
