@@ -98,7 +98,7 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
     x, xp = phase_space_ellipse(emit_geo, beta, alpha, 1000)
     xs, xps = rescale_xxp(x, xp)
 
-    sp_ellipse.plot(x, xp, color='black')
+    sp_ellipse.plot(x*1e6, xp*1e6, color='black')
     sp_ellipse_norm.plot(xs, xps, color='black')
 
 

@@ -39,7 +39,7 @@ class XFEL_interface:
                 outp.append([0, np.random.rand(), np.random.rand(), 0, 'BPME.%04i.SA%i' % (ctr, int(self.beamline[-1]))])
             return outp
 
-        if 'INTENSITY.RAW' in ch:
+        if 'RAW.TRAIN' in ch:
             return 500 + np.random.rand()*50
 
         raise ValueError(ch)
