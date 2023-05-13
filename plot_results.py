@@ -38,7 +38,7 @@ elif 'xfelbkr' in gethostname():
     plt.rc('ytick', labelsize=SMALL_SIZE)
     plt.rc('legend', fontsize=SMALL_SIZE)
     plt.rc('figure', titlesize=MEDIUM_SIZE)
-    plt.rc('lines', linwidth=LINEWIDTH, markersize=MARKERSIZE)
+    plt.rc('lines', linewidth=LINEWIDTH, markersize=MARKERSIZE)
 
 def phase_space_ellipse(emittance, beta, alpha, n_points):
 
