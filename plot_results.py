@@ -25,11 +25,11 @@ elif 'xfelbkr' in gethostname():
     SMALL_SIZE = 4
     MEDIUM_SIZE = 5
     BIGGER_SIZE = 6
-    LINEWIDTH = 2
-    MARKERSIZE = 5
-    LEFT = 0.2
-    RIGHT = 0.8
-    WSPACE = 0.55
+    LINEWIDTH = 1
+    MARKERSIZE = 2
+    LEFT = 0.15
+    RIGHT = 0.85
+    HSPACE = 0.55
 
     plt.rc('font', size=SMALL_SIZE)
     plt.rc('axes', titlesize=SMALL_SIZE)
@@ -129,7 +129,7 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
     for _sp in sp_ellipse, sp_A:
         _sp.legend(title='A')
 
-def performance_figure(rec_point, figsize=[12, 10]):
+def performance_figure(rec_point, figsize=[10, 12]):
     fig = plt.figure(figsize=figsize)
     fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE)
     sp_ellipse = plt.subplot(2, 2, 1)
