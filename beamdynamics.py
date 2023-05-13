@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.constants import m_e, c, e
 
+m_e_eV = m_e*c**2/e
+
 def eps_norm_to_geo(eps_norm, energy_eV):
-    m_e_eV = m_e*c**2/e
     return eps_norm/(energy_eV/m_e_eV)
 
 def calc_r(beta0, alpha0, mu0, beta1, alpha1, mu1):

@@ -1,5 +1,4 @@
 
-
 beamlines = ['SASE1', 'SASE2', 'SASE3']
 
 corrector_names = {
@@ -38,15 +37,22 @@ corrector_beta_alpha_mu = {
         'CNY.2799.T4': [10.99, 0.96, 153.7058],
         }
 
-fast_sase_ch = {
-        'SASE1': 'XFEL.FEL/XGM/XGM.2643.T9/INTENSITY.RAW.TRAIN.HIST',
-        'SASE2': 'XFEL.FEL/XGM/XGM.2595.T6/INTENSITY.RAW.TRAIN.HIST',
-        'SASE3': 'XFEL.FEL/XGM/XGM.3130.T10/INTENSITY.RAW.TRAIN.HIST',
+fast_xgm_ch = {
+        'SASE1': 'XFEL.FEL/XGM/XGM.2643.T9/INTENSITY.RAW.TRAIN',
+        'SASE2': 'XFEL.FEL/XGM/XGM.2595.T6/INTENSITY.RAW.TRAIN',
+        'SASE3': 'XFEL.FEL/XGM/XGM.3130.T10/INTENSITY.RAW.TRAIN',
         }
 
 orbit_fb_channels = {
         'SASE1': 'XFEL.FEEDBACK/ORBIT.SA1/ORBITFEEDBACK.ACTIVATE_FB',
         'SASE2': 'XFEL.FEEDBACK/ORBIT.SA2/ORBITFEEDBACK.ACTIVATE_FB',
         'SASE3': 'XFEL.FEEDBACK/ORBIT.SA3/ORBITFEEDBACK.ACTIVATE_FB',
+        }
+
+#TODO
+bpm_channels = {
+        'SASE1': 'BPM',
+        'SASE2': 'BPM',
+        'SASE3': 'BPM',
         }
 

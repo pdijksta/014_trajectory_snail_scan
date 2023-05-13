@@ -91,7 +91,7 @@
        <rect>
         <x>10</x>
         <y>180</y>
-        <width>271</width>
+        <width>281</width>
         <height>211</height>
        </rect>
       </property>
@@ -134,7 +134,7 @@
      <widget class="Line" name="line">
       <property name="geometry">
        <rect>
-        <x>280</x>
+        <x>290</x>
         <y>10</y>
         <width>20</width>
         <height>491</height>
@@ -192,7 +192,7 @@
      <widget class="QLabel" name="label_4">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>310</x>
         <y>10</y>
         <width>221</width>
         <height>51</height>
@@ -257,7 +257,7 @@ If steps=1, takes min value only</string>
      <widget class="QLabel" name="label_5">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>310</x>
         <y>70</y>
         <width>201</width>
         <height>16</height>
@@ -312,7 +312,7 @@ If steps=1, takes min value only</string>
      <widget class="QLabel" name="label_6">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>310</x>
         <y>120</y>
         <width>211</width>
         <height>16</height>
@@ -341,7 +341,7 @@ If steps=1, takes min value only</string>
      <widget class="QLabel" name="label_7">
       <property name="geometry">
        <rect>
-        <x>300</x>
+        <x>310</x>
         <y>160</y>
         <width>211</width>
         <height>16</height>
@@ -569,7 +569,7 @@ If steps=1, takes min value only</string>
      <attribute name="title">
       <string>Performance plots</string>
      </attribute>
-     <widget class="QFrame" name="frame">
+     <widget class="QFrame" name="frame1">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -590,6 +590,22 @@ If steps=1, takes min value only</string>
      <attribute name="title">
       <string>Corrector plots</string>
      </attribute>
+     <widget class="QFrame" name="frame2">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>751</width>
+        <height>451</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

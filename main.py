@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 import numpy as np
 import matplotlib
@@ -16,7 +17,7 @@ import config
 import beamdynamics
 import devices
 
-if __name__ == '__main__' and os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py'):
+if __name__ == '__main__' and (not os.path.isfile('./gui.py') or os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py')):
     cmd = 'bash ./ui2py.sh'
     print(cmd)
     os.system(cmd)
@@ -30,6 +31,9 @@ class Main(QMainWindow):
         QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        #For debug purposes
+        #self.verbose = True
 
         #Connect buttons
         self.ui.ResetButton.clicked.connect(self.initialize)
@@ -58,12 +62,12 @@ class Main(QMainWindow):
         """
         Initializes self.mi, self.tg and sets init corrector values.
         """
-        beamline = self.ui.BeamlineSelect.currentText()
-        plane = self.ui.PlaneSelect.currentText()
-        dry_run = self.ui.DryRunCheck.isChecked()
+        self.beamline = self.ui.BeamlineSelect.currentText()
+        self.plane = self.ui.PlaneSelect.currentText()
+        self.dry_run = self.ui.DryRunCheck.isChecked()
 
-        self.mi = devices.XFEL_interface(dry_run, beamline)
-        self.correctors = config.corrector_names[beamline][plane]
+        self.mi = devices.XFEL_interface(self.dry_run, self.beamline)
+        self.correctors = config.corrector_names[self.beamline][self.plane]
         self.init_values = [self.mi.read_corrector(x) for x in self.correctors]
 
         energy_eV = self.mi.read_beam_energy_eV()
@@ -76,7 +80,7 @@ class Main(QMainWindow):
         r12, r22 = beamdynamics.calc_r(beta0, alpha0, mu0, beta1, alpha1, mu1)
         self.tg = beamdynamics.TwissGymnastics(beta1, alpha1, eps_geo, r12, r22)
 
-        self.ui.StatusLabel.setText('Tool initalized. DRY_RUN=%i' % self.mi.dry_run)
+        self.ui.StatusLabel.setText('Tool initalized. DRY_RUN=%i' % self.dry_run)
         for button in self.disable_buttons:
             button.setEnabled(True)
 
@@ -91,6 +95,7 @@ class Main(QMainWindow):
             corr_info = 'c%i %s: %+.4f; %.1f; %+.2f' % (n, self.correctors[0], self.init_values[n]*1e3, beta, alpha)
             info.append(corr_info)
         self.ui.InformationLabel.setText('\n'.join(info))
+        self.ui.InformationLabel.setFont(QtGui.QFont('Monospace'))
 
         self.ui.CorrAngleResult.setText('Result:')
         self.ui.A_Phi_Result.setText('Result:')
@@ -118,9 +123,86 @@ class Main(QMainWindow):
         a_max = self.ui.A_max.value()
         a_steps = self.ui.A_steps.value()
         phi_steps = self.ui.Phi_steps.value()
+        settle_time = self.ui.SettleTime.value()
+        measurement_time = self.ui.MeasurementTime.value()
 
         A_range, phi_range = self.tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
         delta_corr_arr = self.tg.Aphi_range_to_corr(A_range, phi_range)
+
+        pulse_ene_mean = np.full([len(A_range), len(phi_range)], np.nan, dtype=float)
+        pulse_ene_std = pulse_ene_mean.copy()
+
+        first = True
+
+        n_meas = len(A_range)*len(phi_range)
+
+        ctr = 0
+        for n_A, A in enumerate(A_range):
+            for n_phi, phi in enumerate(phi_range):
+
+                this_pulse_energy = []
+                this_orbit = []
+
+                delta_corr = delta_corr_arr[n_A, n_phi]
+                for corr, init, delta in zip(self.correctors, self.init_values, delta_corr):
+                    self.mi.write_corrector(corr, init+delta)
+
+                if not self.dry_run:
+                    time.sleep(settle_time)
+
+                time_begin = time_now = time.time()
+                time_end = time_begin + measurement_time
+                while time_now < time_end:
+                    orbit_vals = self.mi.read_orbit()
+                    pulse_energy_vals = self.mi.read_pulse_energy()
+                    if first:
+                        orbit_mean = np.full([len(A_range), len(phi_range), len(orbit_vals)], np.nan, dtype=float)
+                        orbit_std = orbit_mean.copy()
+                        first = False
+
+                    this_orbit.append(orbit_vals)
+                    this_pulse_energy.append(pulse_energy_vals)
+
+                    time_prev = time_now
+                    time_now = time.time()
+                    delta = time_prev + 0.1 - time_now
+                    if delta > 0:
+                        time.sleep(delta)
+                        time_now += delta
+
+                this_pulse_energy = np.array(this_pulse_energy)
+                this_orbit = np.array(this_orbit)
+
+                pulse_ene_mean[n_A, n_phi] = np.mean(this_pulse_energy)
+                pulse_ene_std[n_A, n_phi] = np.std(this_pulse_energy)
+                orbit_mean[n_A, n_phi] = np.mean(this_orbit, axis=0)
+                orbit_std[n_A, n_phi] = np.std(this_orbit, axis=0)
+
+                ctr += 1
+                print('Measurement %i out of %i done.' % (ctr, n_meas))
+
+        result_dict = {
+                'input': {
+                    'A_min_max_steps': [a_min, a_max, a_steps],
+                    'phi_steps': phi_steps,
+                    'settle_time': settle_time,
+                    'measurement_time': measurement_time,
+                    'correctors': self.correctors,
+                    'init_corrector_vals': self.init_values,
+                    'beamline': self.beamline,
+                    'plane': self.plane,
+                    },
+                'data': {
+                    'pulse_ene_mean': pulse_ene_mean,
+                    'pulse_ene_std': pulse_ene_std,
+                    'orbit_mean': orbit_mean,
+                    'orbit_std': orbit_std,
+                    'A': A_range,
+                    'phi': phi_range,
+                    'delta_corr_angles': delta_corr_arr,
+                    },
+                }
+        return result_dict
 
 
 if __name__ == "__main__":

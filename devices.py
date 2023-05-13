@@ -15,6 +15,10 @@ class XFEL_interface:
             dry_run = True
         self.dry_run = dry_run
         self.beamline = beamline
+        self.orbit_fb_channel = config.orbit_fb_channels[self.beamline]
+        self.energy_ch = 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/T4/ENERGY.SA%i' % int(self.beamline[-1])
+        self.bpm_channels = config.bpm_channels[self.beamline]
+        self.pulse_energy_ch = config.fast_xgm_ch[self.beamline]
 
     def read_ch(self, ch):
         if not self.dry_run:
@@ -28,6 +32,14 @@ class XFEL_interface:
 
         if 'BEAM_ENERGY_MEASUREMENT' in ch:
             return 16385.
+
+        if 'BPM' in ch:
+            return (np.random.rand(20)-0.5)*1e-6
+
+        if 'INTENSITY.RAW' in ch:
+            return 500 + np.random.rand()*50
+
+        raise ValueError(ch)
 
     def write_ch(self, ch, val):
         if self.dry_run:
@@ -44,14 +56,15 @@ class XFEL_interface:
         self.write_ch(ch, val*1e3)
 
     def read_fb_status(self):
-        ch = config.orbit_fb_channels[self.beamline]
-        return self.read_ch(ch)
+        return self.read_ch(self.orbit_fb_channel)
 
     def read_beam_energy_eV(self):
-        ch = 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/T4/ENERGY.SA%i' % int(self.beamline[-1])
-        return self.read_ch(ch)*1e6
+        return self.read_ch(self.energy_ch)*1e6
 
+    def read_orbit(self):
+        return self.read_ch(self.bpm_channels)
 
-
+    def read_pulse_energy(self):
+        return self.read_ch(self.pulse_energy_ch)
 
 
