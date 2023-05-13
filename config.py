@@ -38,9 +38,9 @@ corrector_beta_alpha_mu = {
         }
 
 fast_xgm_ch = {
-        'SASE1': 'XFEL.FEL/XGM/XGM.2643.T9/INTENSITY.RAW.TRAIN',
+        'SASE1': 'XFEL.FEL/XGM/XGM.2643.T9/INTENSITY.SA1.RAW.TRAIN',
         'SASE2': 'XFEL.FEL/XGM/XGM.2595.T6/INTENSITY.RAW.TRAIN',
-        'SASE3': 'XFEL.FEL/XGM/XGM.3130.T10/INTENSITY.RAW.TRAIN',
+        'SASE3': 'XFEL.FEL/XGM/XGM.3130.T10/INTENSITY.SA3.RAW.TRAIN',
         }
 
 orbit_fb_channels = {
