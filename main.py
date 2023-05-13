@@ -1,6 +1,6 @@
 import sys
 import os
-import time
+#import time
 
 import numpy as np
 import matplotlib
@@ -8,11 +8,13 @@ import matplotlib
 import PyQt5
 import PyQt5.Qt
 from PyQt5 import QtCore, QtGui
+from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 #import matplotlib.pyplot as plt
 #from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
+import workers
 import config
 import beamdynamics
 import devices
@@ -54,6 +56,9 @@ class Main(QMainWindow):
             ]
         for button in self.disable_buttons:
             button.setEnabled(False)
+        self.ui.AbortMeasurementButton.setEnabled(False)
+
+        self.meas_lock = False
 
         # Always show first tab on startup
         self.ui.tabWidget.setCurrentIndex(0)
@@ -118,6 +123,32 @@ class Main(QMainWindow):
         A, phi = self.tg.trajoffset_to_Aphi(x, xp)
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
+    def measurement_post(self):
+        pass
+
+    def measurement_progress(self, val):
+        self.ui.progressBar.setValue(val)
+
+    def threaded_func(self, worker, args, kwargs, post_func):
+        # Written using example under https://realpython.com/python-pyqt-qthread/
+        if self.meas_lock:
+            raise RuntimeError('Cannot start new analysis while lock is active')
+
+        self.func_thread = QThread(parent=self)
+        self.func_worker = worker(*args, **kwargs)
+        self.func_worker.moveToThread(self.func_thread)
+
+        self.func_thread.started.connect(self.lock_meas)
+        self.func_thread.started.connect(self.func_worker.run)
+        self.func_thread.finished.connect(self.unlock_meas)
+
+        self.func_worker.finished.connect(post_func)
+        self.func_worker.finished.connect(self.func_thread.quit)
+        self.func_worker.finished.connect(self.func_thread.deleteLater)
+        self.func_worker.progress.connect(self.measurement_progress)
+
+        self.func_thread.start()
+
     def measurement(self):
         a_min = self.ui.A_min.value()
         a_max = self.ui.A_max.value()
@@ -125,84 +156,18 @@ class Main(QMainWindow):
         phi_steps = self.ui.Phi_steps.value()
         settle_time = self.ui.SettleTime.value()
         measurement_time = self.ui.MeasurementTime.value()
+        self.threaded_func(workers.MeasWorker, (self, a_min, a_max, a_steps, phi_steps, settle_time, measurement_time), {}, self.measurement_post)
 
-        A_range, phi_range = self.tg.gen_Aphi_range(a_min, a_max, a_steps, phi_steps)
-        delta_corr_arr = self.tg.Aphi_range_to_corr(A_range, phi_range)
 
-        pulse_ene_mean = np.full([len(A_range), len(phi_range)], np.nan, dtype=float)
-        pulse_ene_std = pulse_ene_mean.copy()
+    def lock_meas(self):
+        self.ui.StartMeasurementButton.setEnabled(False)
+        self.ui.AbortMeasurementButton.setEnabled(True)
+        self.meas_lock = True
 
-        first = True
-
-        n_meas = len(A_range)*len(phi_range)
-
-        ctr = 0
-        for n_A, A in enumerate(A_range):
-            for n_phi, phi in enumerate(phi_range):
-
-                this_pulse_energy = []
-                this_orbit = []
-
-                delta_corr = delta_corr_arr[n_A, n_phi]
-                for corr, init, delta in zip(self.correctors, self.init_values, delta_corr):
-                    self.mi.write_corrector(corr, init+delta)
-
-                if not self.dry_run:
-                    time.sleep(settle_time)
-
-                time_begin = time_now = time.time()
-                time_end = time_begin + measurement_time
-                while time_now < time_end:
-                    orbit_vals = self.mi.read_orbit()
-                    pulse_energy_vals = self.mi.read_pulse_energy()
-                    if first:
-                        orbit_mean = np.full([len(A_range), len(phi_range), len(orbit_vals)], np.nan, dtype=float)
-                        orbit_std = orbit_mean.copy()
-                        first = False
-
-                    this_orbit.append(orbit_vals)
-                    this_pulse_energy.append(pulse_energy_vals)
-
-                    time_prev = time_now
-                    time_now = time.time()
-                    delta = time_prev + 0.1 - time_now
-                    if delta > 0:
-                        time.sleep(delta)
-                        time_now += delta
-
-                this_pulse_energy = np.array(this_pulse_energy)
-                this_orbit = np.array(this_orbit)
-
-                pulse_ene_mean[n_A, n_phi] = np.mean(this_pulse_energy)
-                pulse_ene_std[n_A, n_phi] = np.std(this_pulse_energy)
-                orbit_mean[n_A, n_phi] = np.mean(this_orbit, axis=0)
-                orbit_std[n_A, n_phi] = np.std(this_orbit, axis=0)
-
-                ctr += 1
-                print('Measurement %i out of %i done.' % (ctr, n_meas))
-
-        result_dict = {
-                'input': {
-                    'A_min_max_steps': [a_min, a_max, a_steps],
-                    'phi_steps': phi_steps,
-                    'settle_time': settle_time,
-                    'measurement_time': measurement_time,
-                    'correctors': self.correctors,
-                    'init_corrector_vals': self.init_values,
-                    'beamline': self.beamline,
-                    'plane': self.plane,
-                    },
-                'data': {
-                    'pulse_ene_mean': pulse_ene_mean,
-                    'pulse_ene_std': pulse_ene_std,
-                    'orbit_mean': orbit_mean,
-                    'orbit_std': orbit_std,
-                    'A': A_range,
-                    'phi': phi_range,
-                    'delta_corr_angles': delta_corr_arr,
-                    },
-                }
-        return result_dict
+    def unlock_meas(self):
+        self.ui.StartMeasurementButton.setEnabled(True)
+        self.ui.AbortMeasurementButton.setEnabled(False)
+        self.meas_lock = False
 
 
 if __name__ == "__main__":

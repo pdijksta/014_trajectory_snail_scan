@@ -288,7 +288,7 @@ If steps=1, takes min value only</string>
        <rect>
         <x>310</x>
         <y>280</y>
-        <width>261</width>
+        <width>181</width>
         <height>23</height>
        </rect>
       </property>
@@ -562,6 +562,32 @@ If steps=1, takes min value only</string>
       </property>
       <property name="text">
        <string>Result:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="AbortMeasurementButton">
+      <property name="geometry">
+       <rect>
+        <x>580</x>
+        <y>280</y>
+        <width>181</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Abort measurement</string>
+      </property>
+     </widget>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="geometry">
+       <rect>
+        <x>310</x>
+        <y>230</y>
+        <width>451</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>0</number>
       </property>
      </widget>
     </widget>
