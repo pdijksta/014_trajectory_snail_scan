@@ -13,7 +13,7 @@ from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication
 
 #import matplotlib.pyplot as plt
-#from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
 import measurement
 import config
@@ -47,10 +47,11 @@ class Main(QMainWindow):
         self.ui.StartMeasurementButton.clicked.connect(self.do_measurement)
         self.ui.AbortMeasurementButton.clicked.connect(self.abort_measurement)
 
-        #Initialize GUI
+        #Initialize some GUI widgets
         self.ui.BeamlineSelect.addItems(config.beamlines)
         self.ui.StatusLabel.setText('Tool not initialized')
 
+        # Disable certain buttons on startup
         self.disable_buttons = [
             self.ui.StartMeasurementButton,
             self.ui.RestoreCorrectorsButton,
@@ -61,7 +62,12 @@ class Main(QMainWindow):
             button.setEnabled(False)
         self.ui.AbortMeasurementButton.setEnabled(False)
 
+        # Meas_lock must be false
         self.meas_lock = False
+
+        # Plot tabs
+        self.orbit_fig = None
+        self.performance_fig = None
 
         # Always show first tab on startup
         self.ui.tabWidget.setCurrentIndex(0)
@@ -106,6 +112,7 @@ class Main(QMainWindow):
 
         self.ui.CorrAngleResult.setText('Result:')
         self.ui.A_Phi_Result.setText('Result:')
+        self.clear_plot_tabs()
 
     def restore_correctors(self):
         for corr, init_val in zip(self.correctors, self.init_values):
@@ -128,9 +135,10 @@ class Main(QMainWindow):
     def post_measurement(self):
         print('Post measurement called')
         self.result_dict = self.func_worker.result_dict
-        plot_results.plot_Aphi_scan(self.result_dict)
-        plt.show()
-
+        self.restore_correctors()
+        self.new_figures()
+        plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
+        #plt.show()
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
@@ -187,6 +195,28 @@ class Main(QMainWindow):
         self.ui.StartMeasurementButton.setEnabled(True)
         self.ui.AbortMeasurementButton.setEnabled(False)
         self.meas_lock = False
+
+    def clear_plot_tabs(self):
+        for fig, layout in [
+                (self.orbit_fig, self.ui.OrbitLayout),
+                (self.performance_fig, self.ui.PerformanceLayout),
+                ]:
+            if fig is not None:
+                fig.clf()
+                plt.close(fig)
+            if layout is not None:
+                for i in reversed(range(layout.count())):
+                    layout.itemAt(i).widget().deleteLater()
+
+    def new_figures(self):
+        self.clear_plot_tabs()
+        rec_point = self.correctors[1]
+        self.performance_plot_handles = plot_results.performance_figure(rec_point)
+        canvas = FigureCanvasQTAgg(self.performance_plot_handles[0])
+        toolbar = NavigationToolbar2QT(canvas, self)
+        self.ui.PerformanceLayout.addWidget(canvas)
+        self.ui.PerformanceLayout.addWidget(toolbar)
+
 
 
 if __name__ == "__main__":

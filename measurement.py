@@ -38,7 +38,7 @@ class MeasWorker(WorkerBase):
                 while time_now < time_end:
                     if self.abort:
                         break
-                    orbit_vals = mi.read_orbit()
+                    bpm_names, orbit_vals = mi.read_orbit()
                     pulse_energy_vals = mi.read_pulse_energy()
                     if ctr == 0:
                         orbit_mean = np.full([len(A_range), len(phi_range), len(orbit_vals)], np.nan, dtype=float)
@@ -98,6 +98,7 @@ class MeasWorker(WorkerBase):
                     'phi': phi_range,
                     'delta_corr_angles': delta_corr_arr,
                     'delta_xxp': xxp_arr,
+                    'bpm_names': bpm_names,
                     },
                 }
 

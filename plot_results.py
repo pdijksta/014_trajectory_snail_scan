@@ -1,5 +1,38 @@
+from socket import gethostname
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+from matplotlib.colors import Normalize
+
+if 'mpyubl38552' in gethostname():
+    SMALL_SIZE = 7
+    MEDIUM_SIZE = 8
+    BIGGER_SIZE = 9
+
+    plt.rc('font', size=SMALL_SIZE)
+    plt.rc('axes', titlesize=SMALL_SIZE)
+    plt.rc('axes', labelsize=SMALL_SIZE)
+    plt.rc('xtick', labelsize=SMALL_SIZE)
+    plt.rc('ytick', labelsize=SMALL_SIZE)
+    plt.rc('legend', fontsize=SMALL_SIZE)
+    plt.rc('figure', titlesize=MEDIUM_SIZE)
+elif 'xfelbkr' in gethostname():
+    SMALL_SIZE = 4
+    MEDIUM_SIZE = 5
+    BIGGER_SIZE = 6
+
+    plt.rc('font', size=SMALL_SIZE)
+    plt.rc('axes', titlesize=SMALL_SIZE)
+    plt.rc('axes', labelsize=SMALL_SIZE)
+    plt.rc('xtick', labelsize=SMALL_SIZE)
+    plt.rc('ytick', labelsize=SMALL_SIZE)
+    plt.rc('legend', fontsize=SMALL_SIZE)
+    plt.rc('figure', titlesize=MEDIUM_SIZE)
+
+
+
+
+
 
 def phase_space_ellipse(emittance, beta, alpha, n_points):
 
@@ -36,23 +69,15 @@ def phase_space_ellipse(emittance, beta, alpha, n_points):
 
 def plot_Aphi_scan(result_dict, plot_handles=None):
     if plot_handles is None:
-        fig = plt.figure(figsize=(12,10))
-        sp_ellipse = plt.subplot(2, 2, 1)
-        sp_ellipse.set_title('Phase space at %s' % result_dict['input']['correctors'][1])
-        sp_ellipse.set_xlabel('$\Delta x$ ($\mu$m)')
-        sp_ellipse.set_ylabel('$\Delta x\'$ ($\mu$rad)')
-
-        sp_ellipse_norm = plt.subplot(2, 2, 2)
-        sp_ellipse_norm.set_title('Norm. phase space at %s' % result_dict['input']['correctors'][1])
-        sp_ellipse_norm.set_xlabel(r'$\Delta x/\sqrt{\epsilon\beta}$')
-        sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta x +\Delta x\'\beta)/\sqrt{\epsilon\beta}$')
-
-    else:
-        fig, (sp_ellipse, ) = plot_handles
+        rec_point = result_dict['input']['correctors'][1]
+        plot_handles = performance_figure(rec_point)
+    fig, (sp_ellipse, sp_ellipse_norm, sp_A) = plot_handles
 
     emit_geo = result_dict['input']['emit_geo']
     beta = result_dict['input']['beta']
     alpha = result_dict['input']['alpha']
+    A_range = result_dict['data']['A']
+    phi_range = result_dict['data']['phi']
 
     def rescale_xxp(x, xp):
         x_out = x/np.sqrt(emit_geo*beta)
@@ -66,18 +91,53 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
     sp_ellipse.plot(x, xp, color='black')
     sp_ellipse_norm.plot(xs, xps, color='black')
 
-    for n_A, A in enumerate(result_dict['data']['A']):
+
+    for n_A, A in enumerate(A_range):
+        pulse_ene_mean = result_dict['data']['pulse_ene_mean'][n_A]
+        notnan = ~np.isnan(pulse_ene_mean)
+        if np.any(notnan):
+            sp_A.plot(phi_range/np.pi*180, pulse_ene_mean*1e3, label=A, marker='.')
+
         x = result_dict['data']['delta_xxp'][n_A,:,0]
         xp = result_dict['data']['delta_xxp'][n_A,:,1]
-        sp_ellipse.plot(x, xp, ls='None', marker='.', label=A)
-
         xs, xps = rescale_xxp(x, xp)
-        sp_ellipse_norm.plot(xs, xps, ls='None', marker='.', label=A)
 
+        for sp, xx, xxpp in [
+                (sp_ellipse, x, xp),
+                (sp_ellipse_norm, xs, xps),
+                ]:
+            sp.plot(xx, xxpp, ls='--', label=A)
+            if np.any(notnan):
+                sp.scatter(xx[notnan], xxpp[notnan], c=pulse_ene_mean[notnan])
 
-    sp_ellipse.legend(title='A')
+    all_pulse_ene = result_dict['data']['pulse_ene_mean'].ravel()
+    notnan = ~np.isnan(all_pulse_ene)
+    if np.any(notnan):
+        all_pulse_ene = all_pulse_ene[notnan]
+        norm = Normalize(vmin=all_pulse_ene.min(), vmax=all_pulse_ene.max())
+        mappable = cm.ScalarMappable(norm=norm)
+        fig.colorbar(mappable, ax=[sp_ellipse, sp_ellipse_norm])
 
+    for _sp in sp_ellipse, sp_A:
+        _sp.legend(title='A')
 
+def performance_figure(rec_point, figsize=[12, 10]):
+    fig = plt.figure(figsize=figsize)
+    fig.subplots_adjust(left=0.1, right=0.9, hspace=0.4, wspace=0.4)
+    sp_ellipse = plt.subplot(2, 2, 1)
+    sp_ellipse.set_title('Phase space at %s' % rec_point)
+    sp_ellipse.set_xlabel('$\Delta x$ ($\mu$m)')
+    sp_ellipse.set_ylabel('$\Delta x\'$ ($\mu$rad)')
 
+    sp_ellipse_norm = plt.subplot(2, 2, 2)
+    sp_ellipse_norm.set_title('Norm. phase space at %s' % rec_point)
+    sp_ellipse_norm.set_xlabel(r'$\Delta x/\sqrt{\epsilon\beta}$')
+    sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta x +\Delta x\'\beta)/\sqrt{\epsilon\beta}$')
 
+    sp_A = plt.subplot(2, 2, 3)
+    sp_A.set_title('Recorded pulse energies')
+    sp_A.set_xlabel('Phase (deg)')
+    sp_A.set_ylabel('Pulse energy (mJ)')
+
+    return fig, (sp_ellipse, sp_ellipse_norm, sp_A)
 

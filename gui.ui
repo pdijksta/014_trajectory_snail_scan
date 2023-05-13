@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -251,7 +251,7 @@ If steps=1, takes min value only</string>
        <number>1</number>
       </property>
       <property name="value">
-       <number>3</number>
+       <number>2</number>
       </property>
      </widget>
      <widget class="QLabel" name="label_5">
@@ -280,7 +280,7 @@ If steps=1, takes min value only</string>
        <number>2</number>
       </property>
       <property name="value">
-       <number>10</number>
+       <number>5</number>
       </property>
      </widget>
      <widget class="QPushButton" name="StartMeasurementButton">
@@ -335,7 +335,7 @@ If steps=1, takes min value only</string>
        <double>1.000000000000000</double>
       </property>
       <property name="value">
-       <double>5.000000000000000</double>
+       <double>2.000000000000000</double>
       </property>
      </widget>
      <widget class="QLabel" name="label_7">
@@ -364,7 +364,7 @@ If steps=1, takes min value only</string>
        <double>1.000000000000000</double>
       </property>
       <property name="value">
-       <double>20.000000000000000</double>
+       <double>2.000000000000000</double>
       </property>
      </widget>
      <widget class="QDoubleSpinBox" name="A_calc">
@@ -595,28 +595,23 @@ If steps=1, takes min value only</string>
      <attribute name="title">
       <string>Performance plots</string>
      </attribute>
-     <widget class="QFrame" name="frame1">
+     <widget class="QWidget" name="gridLayoutWidget_2">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>10</y>
         <width>751</width>
-        <height>451</height>
+        <height>491</height>
        </rect>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
+      <layout class="QGridLayout" name="PerformanceLayout"/>
      </widget>
     </widget>
     <widget class="QWidget" name="tab_3">
      <attribute name="title">
       <string>Corrector plots</string>
      </attribute>
-     <widget class="QFrame" name="frame2">
+     <widget class="QWidget" name="gridLayoutWidget">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -625,12 +620,7 @@ If steps=1, takes min value only</string>
         <height>451</height>
        </rect>
       </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
-      </property>
+      <layout class="QGridLayout" name="OrbitLayout"/>
      </widget>
     </widget>
    </widget>

@@ -49,11 +49,7 @@ orbit_fb_channels = {
         'SASE3': 'XFEL.FEEDBACK/ORBIT.SA3/ORBITFEEDBACK.ACTIVATE_FB',
         }
 
-#TODO
-bpm_channels = {
-        'SASE1': 'BPM',
-        'SASE2': 'BPM',
-        'SASE3': 'BPM',
-        }
+bpm_chs = lambda beamline, plane: 'XFEL.DIAG/BPM/*.SA%i/%s.ALL' % (int(beamline[-1]), plane)
 
 energy_ch = lambda beamline: 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/CL/ENERGY.SA%i' % int(beamline[-1])
+

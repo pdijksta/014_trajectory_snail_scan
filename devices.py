@@ -18,7 +18,7 @@ class XFEL_interface:
         self.plane = plane
         self.orbit_fb_channel = config.orbit_fb_channels[self.beamline]
         self.energy_ch = config.energy_ch(self.beamline)
-        self.bpm_channels = config.bpm_channels[self.beamline]
+        self.bpm_channels = config.bpm_chs(self.beamline, self.plane)
         self.pulse_energy_ch = config.fast_xgm_ch[self.beamline]
 
     def read_ch(self, ch):
@@ -35,7 +35,10 @@ class XFEL_interface:
             return 16385.
 
         if 'BPM' in ch:
-            return (np.random.rand(20)-0.5)*1e-6
+            outp = []
+            for ctr in range(20):
+                outp.append([0, np.random.rand(), np.random.rand(), 0, 'BPME.%04i.SA%i' % (ctr, int(self.beamline[-1]))])
+            return outp
 
         if 'INTENSITY.RAW' in ch:
             return 500 + np.random.rand()*50
@@ -63,10 +66,12 @@ class XFEL_interface:
         return self.read_ch(self.energy_ch)*1e6
 
     def read_orbit(self):
-        # Also need to obtain bpm names and positions
-        return self.read_ch(self.bpm_channels)
+        bpm_data = self.read_ch(self.bpm_channels)
+        bpm_names = [x[-1] for x in bpm_data]
+        bpm_vals = np.array([x[1] for x in bpm_data])
+        return bpm_names, bpm_vals*1e-3
 
     def read_pulse_energy(self):
-        return self.read_ch(self.pulse_energy_ch)
+        return self.read_ch(self.pulse_energy_ch)/1e6
 
 
