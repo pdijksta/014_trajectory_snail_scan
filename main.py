@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 import PyQt5
 import PyQt5.Qt
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog
 
@@ -62,7 +62,8 @@ class Main(QMainWindow):
             self.ui.StartMeasurementButton,
             self.ui.RestoreCorrectorsButton,
             self.ui.CalcCorrAnglesButton,
-            self.ui.CalcAPhiButton
+            self.ui.CalcAPhiButton,
+            self.ui.LogbookButton,
             ]
         for button in self.disable_buttons:
             button.setEnabled(False)
@@ -228,6 +229,14 @@ class Main(QMainWindow):
         res = logbook.send_to_desy_elog(author='Dr. Snail', title='OrbitSnailScan', severity='INFO', text=text, elog='xfellog', image=screenshot)
         if not res:
             print('error during eLogBook sending')
+
+    def get_screenshot(self, window_widget):
+        screenshot_tmp = QtCore.QByteArray()
+        screeshot_buffer = QtCore.QBuffer(screenshot_tmp)
+        screeshot_buffer.open(QtCore.QIODevice.WriteOnly)
+        widget = QtWidgets.QWidget.grab(window_widget)
+        widget.save(screeshot_buffer, "png")
+        return screenshot_tmp.toBase64().data().decode()
 
     def log_screen(self, widget, auto_comment=""):
         dlg = QInputDialog(self)
