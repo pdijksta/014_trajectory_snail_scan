@@ -230,9 +230,7 @@ class Main(QMainWindow):
             print('error during eLogBook sending')
 
     def log_screen(self, widget, auto_comment=""):
-        #text, ok = QInputDialog().getText(self.Form, "LogBook Comment",
-        #                                  "Comment: ")
-        dlg = QInputDialog(self.Form)
+        dlg = QInputDialog(self)
         dlg.setInputMode(QInputDialog.TextInput)
         dlg.setLabelText("Comment :")
         dlg.resize(400, 100)
