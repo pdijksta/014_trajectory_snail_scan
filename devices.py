@@ -16,7 +16,7 @@ class XFEL_interface:
         self.dry_run = dry_run
         self.beamline = beamline
         self.orbit_fb_channel = config.orbit_fb_channels[self.beamline]
-        self.energy_ch = 'XFEL.DIAG/BEAM_ENERGY_MEASUREMENT/T4/ENERGY.SA%i' % int(self.beamline[-1])
+        self.energy_ch = config.energy_ch(self.beamline)
         self.bpm_channels = config.bpm_channels[self.beamline]
         self.pulse_energy_ch = config.fast_xgm_ch[self.beamline]
 
@@ -62,6 +62,7 @@ class XFEL_interface:
         return self.read_ch(self.energy_ch)*1e6
 
     def read_orbit(self):
+        # Also need to obtain bpm names and positions
         return self.read_ch(self.bpm_channels)
 
     def read_pulse_energy(self):
