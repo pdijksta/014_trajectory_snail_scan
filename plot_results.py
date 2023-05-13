@@ -8,6 +8,8 @@ LEFT = 0.1
 RIGHT = 0.9
 HSPACE = 0.4
 WSPACE = 0.4
+TOP = None
+BOTTOM = None
 
 if 'mpyubl38552' in gethostname():
     SMALL_SIZE = 7
@@ -29,7 +31,8 @@ elif 'xfelbkr' in gethostname():
     MARKERSIZE = 2
     LEFT = 0.15
     RIGHT = 0.85
-    HSPACE = 0.55
+    BOTTOM = 0.85
+    HSPACE = 0.65
 
     plt.rc('font', size=SMALL_SIZE)
     plt.rc('axes', titlesize=SMALL_SIZE)
@@ -126,12 +129,15 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
 
     sp_A.axhline(result_dict['data']['init_pulse_energy']*1e3, color='black', ls='--', label=0)
 
+    lim = sp_A.get_xlim()[0]
+    sp_A.set_xlim(lim, -lim)
+
     for _sp in sp_ellipse, sp_A:
         _sp.legend(title='A')
 
 def performance_figure(rec_point, figsize=[10, 12]):
     fig = plt.figure(figsize=figsize)
-    fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE)
+    fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE, top=TOP, bottom=BOTTOM)
     sp_ellipse = plt.subplot(2, 2, 1)
     sp_ellipse.set_title('Phase space at %s' % rec_point)
     sp_ellipse.set_xlabel('$\Delta x$ ($\mu$m)')
