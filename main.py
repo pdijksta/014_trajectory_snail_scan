@@ -52,6 +52,7 @@ class Main(QMainWindow):
         self.ui.StartMeasurementButton.clicked.connect(self.do_measurement)
         self.ui.AbortMeasurementButton.clicked.connect(self.abort_measurement)
         self.ui.LogbookButton.clicked.connect(self.do_logbook)
+        self.ui.SaveAnalysisButton.clicked.connect(self.save_result)
 
         #Initialize some GUI widgets
         self.ui.BeamlineSelect.addItems(config.beamlines)
@@ -68,6 +69,7 @@ class Main(QMainWindow):
             button.setEnabled(False)
         self.ui.AbortMeasurementButton.setEnabled(False)
         self.ui.LogbookButton.setEnabled(False)
+        self.ui.SaveAnalysisButton.setEnabled(False)
 
         # Meas_lock must be false
         self.meas_lock = False
@@ -104,6 +106,7 @@ class Main(QMainWindow):
         for button in self.disable_buttons:
             button.setEnabled(True)
         self.ui.LogbookButton.setEnabled(False)
+        self.ui.SaveAnalysisButton.setEnabled(False)
 
         info = [
                 'Information on tool status',
@@ -146,7 +149,8 @@ class Main(QMainWindow):
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
         self.ui.tabWidget.setCurrentIndex(1)
-        self.ui.LogbookButton.setEnabled(False)
+        self.ui.LogbookButton.setEnabled(True)
+        self.ui.SaveAnalysisButton.setEnabled(True)
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
@@ -227,7 +231,6 @@ class Main(QMainWindow):
 
     def logbook(self, widget, text=""):
         screenshot = self.get_screenshot(widget)
-
         res = logbook.send_to_desy_elog(author='Dr. Snail', title='OrbitSnailScan', severity='INFO', text=text, elog='xfellog', image=screenshot)
         if not res:
             print('error during eLogBook sending')
@@ -241,14 +244,7 @@ class Main(QMainWindow):
         return screenshot_tmp.toBase64().data().decode()
 
     def log_screen(self, widget, auto_comment=""):
-        dlg = QInputDialog(self)
-        dlg.setInputMode(QInputDialog.TextInput)
-        dlg.setLabelText("Comment :")
-        dlg.resize(400, 100)
-        ok = dlg.exec_()
-        comment = dlg.textValue()
-
-        filename = self.save_result()
+        filename, comment, ok = self.save_result()
         text = 'Data is saved in %s' % os.path.abspath(filename)
         if ok:
             text = comment + "\n" +"\n" + text
@@ -256,10 +252,19 @@ class Main(QMainWindow):
         self.logbook(widget, text=text)
 
     def do_logbook(self):
+        index = self.ui.tabWidget.currentIndex()
         self.ui.tabWidget.setCurrentIndex(1)
         self.log_screen(self)
+        self.ui.tabWidget.setCurrentIndex(index)
 
     def save_result(self):
+        dlg = QInputDialog(self)
+        dlg.setInputMode(QInputDialog.TextInput)
+        dlg.setLabelText("Comment :")
+        dlg.resize(400, 100)
+        ok = dlg.exec_()
+        comment = dlg.textValue()
+
         data = self.result_dict
         data2 = {}
         for key1, subdict1 in data.items():
@@ -269,7 +274,8 @@ class Main(QMainWindow):
         Path(self.data_dir).mkdir(parents=True, exist_ok=True)
         filename = self.data_dir + time.strftime("%Y%m%d-%H_%M_%S") + "_snail_scan.npz"
         np.savez(filename, **data2)
-        return filename
+        print('Saved analysis under %s' % os.path.abspath(filename))
+        return filename, comment, ok
 
 if __name__ == "__main__":
     # for pdb to work
