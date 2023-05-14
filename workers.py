@@ -25,15 +25,12 @@ class WorkerBase(QObject):
         finally:
             self.finished.emit()
 
-def threaded_func(parent, lock, worker, args, kwargs, start_funcs, finish_funcs, progress_funcs):
+def threaded_func(parent, worker, args, kwargs, start_funcs, finish_funcs, progress_funcs):
     # Written using example under https://realpython.com/python-pyqt-qthread/
-    if lock:
-        raise RuntimeError('Cannot start new analysis while lock is active')
 
     func_thread = QThread(parent=parent)
     func_worker = worker(*args, **kwargs)
     func_worker.moveToThread(func_thread)
-
 
     for func in start_funcs:
         func_thread.started.connect(func)
