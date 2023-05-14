@@ -146,6 +146,7 @@ class Main(QMainWindow):
         self.restore_correctors()
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
+        plot_results.plot_orbit(self.result_dict, plot_handles=self.orbit_plot_handles)
         self.ui.tabWidget.setCurrentIndex(1)
         self.ui.LogbookButton.setEnabled(True)
         self.ui.SaveAnalysisButton.setEnabled(True)
@@ -209,6 +210,15 @@ class Main(QMainWindow):
         toolbar = NavigationToolbar2QT(canvas, self)
         self.ui.PerformanceLayout.addWidget(canvas)
         self.ui.PerformanceLayout.addWidget(toolbar)
+
+        correctors = self.result_dict['input']['correctors']
+        maxA = self.result_dict['data']['A'].max()
+        plane = self.result_dict['input']['plane']
+        self.orbit_plot_handles = plot_results.orbit_figure(correctors, maxA, plane)
+        canvas = FigureCanvasQTAgg(self.orbit_plot_handles[0])
+        toolbar = NavigationToolbar2QT(canvas, self)
+        self.ui.OrbitLayout.addWidget(canvas)
+        self.ui.OrbitLayout.addWidget(toolbar)
 
     def do_logbook(self):
         index = self.ui.tabWidget.currentIndex()
