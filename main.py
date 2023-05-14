@@ -212,9 +212,9 @@ class Main(QMainWindow):
         self.ui.PerformanceLayout.addWidget(toolbar)
 
         correctors = self.result_dict['input']['correctors']
-        maxA = self.result_dict['data']['A'].max()
+        minA = self.result_dict['data']['A'].min()
         plane = self.result_dict['input']['plane']
-        self.orbit_plot_handles = plot_results.orbit_figure(correctors, maxA, plane)
+        self.orbit_plot_handles = plot_results.orbit_figure(correctors, minA, plane)
         canvas = FigureCanvasQTAgg(self.orbit_plot_handles[0])
         toolbar = NavigationToolbar2QT(canvas, self)
         self.ui.OrbitLayout.addWidget(canvas)

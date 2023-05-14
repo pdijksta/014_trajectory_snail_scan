@@ -192,15 +192,15 @@ def plot_orbit(result_dict, plot_handles=None):
     bpmz = [int(x.split('.')[1]) for x in result_dict['data']['bpm_names']]
     for n_phi, phi in enumerate(phi_range):
 
-        orbit_mean = result_dict['data']['orbit_mean'][-1,n_phi]
-        orbit_std = result_dict['data']['orbit_std'][-1,n_phi]
+        orbit_mean = result_dict['data']['orbit_mean'][0,n_phi]
+        orbit_std = result_dict['data']['orbit_std'][0,n_phi]
 
         if np.any(~np.isnan(orbit_mean)):
             sp_orbit.errorbar(bpmz, orbit_mean*1e3, yerr=orbit_std*1e3, label='%i' % (phi/np.pi*180))
     sp_orbit.legend(title='Phi')
 
 
-def orbit_figure(correctors, maxA, plane, figsize=[10, 12]):
+def orbit_figure(correctors, minA, plane, figsize=[10, 12]):
     fig = plt.figure(figsize=figsize)
     fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE, top=TOP, bottom=BOTTOM)
     spec = fig.add_gridspec(ncols=2, nrows=2)
@@ -214,7 +214,7 @@ def orbit_figure(correctors, maxA, plane, figsize=[10, 12]):
         sp_angles.append(sp_angle)
 
     sp_orbit = fig.add_subplot(spec[1,:])
-    sp_orbit.set_title('Orbit for A=%.1f' % maxA)
+    sp_orbit.set_title('Orbit for A=%.1f' % minA)
     sp_orbit.set_xlabel('s (m)')
     sp_orbit.set_ylabel('%s (mm)' % plane)
 
