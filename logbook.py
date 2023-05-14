@@ -75,3 +75,12 @@ def get_screenshot(window_widget):
     widget.save(screeshot_buffer, "png")
     return screenshot_tmp.toBase64().data().decode()
 
+def dialog(parent):
+    dlg = QtWidgets.QInputDialog(parent)
+    dlg.setInputMode(QtWidgets.QInputDialog.TextInput)
+    dlg.setLabelText("Comment :")
+    dlg.resize(400, 100)
+    ok = dlg.exec_()
+    comment = dlg.textValue()
+    return ok, comment
+

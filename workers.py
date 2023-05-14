@@ -3,6 +3,7 @@ from PyQt5.QtCore import QObject, pyqtSignal, QThread
 class WorkerBase(QObject):
     """
     Wraps a function call such that it can be used by QThread.
+    Inherit this class and implement the "func" method.
     """
     finished = pyqtSignal()
     progress = pyqtSignal(int)

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import PyQt5
 import PyQt5.Qt
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication
 
 #import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
@@ -172,7 +172,9 @@ class Main(QMainWindow):
         start_funcs = (self.lock_meas, )
         finish_funcs = (self.unlock_meas, self.post_measurement, )
         progress_funcs = (self.measurement_progress, )
-        self.meas_thread, self.meas_worker = workers.threaded_func(self, self.meas_lock, measurement.MeasWorker, args, {}, start_funcs, finish_funcs, progress_funcs)
+        if self.meas_lock:
+            raise RuntimeError('Cannot start new analysis while lock is active')
+        self.meas_thread, self.meas_worker = workers.threaded_func(self, measurement.MeasWorker, args, {}, start_funcs, finish_funcs, progress_funcs)
 
     def abort_measurement(self):
         self.meas_worker.abort = True
@@ -217,13 +219,7 @@ class Main(QMainWindow):
         self.ui.tabWidget.setCurrentIndex(index)
 
     def save_result(self):
-        dlg = QInputDialog(self)
-        dlg.setInputMode(QInputDialog.TextInput)
-        dlg.setLabelText("Comment :")
-        dlg.resize(400, 100)
-        ok = dlg.exec_()
-        comment = dlg.textValue()
-
+        ok, comment = logbook.dialog(self)
         data = self.result_dict
         data2 = {}
         for key1, subdict1 in data.items():
