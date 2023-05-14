@@ -5,14 +5,13 @@ from pathlib import Path
 
 import numpy as np
 import matplotlib
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 
 import PyQt5
 import PyQt5.Qt
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMainWindow, QApplication
-
-#import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg, NavigationToolbar2QT
 
 import measurement
@@ -30,7 +29,6 @@ if __name__ == '__main__' and (not os.path.isfile('./gui.py') or os.path.getmtim
 
 from gui import Ui_MainWindow
 
-matplotlib.use('Qt5Agg')
 
 class Main(QMainWindow):
 
