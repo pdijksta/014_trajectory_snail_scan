@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import PyQt5
 import PyQt5.Qt
 from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import QThread
 from PyQt5.QtWidgets import QMainWindow, QApplication, QInputDialog
 
 #import matplotlib.pyplot as plt
@@ -22,6 +21,7 @@ import beamdynamics
 import devices
 import plot_results
 import logbook
+import workers
 
 if __name__ == '__main__' and (not os.path.isfile('./gui.py') or os.path.getmtime('./gui.ui') > os.path.getmtime('./gui.py')):
     cmd = 'bash ./ui2py.sh'
@@ -144,7 +144,7 @@ class Main(QMainWindow):
         self.ui.A_Phi_Result.setText('Δc0=%.5f mrad, Δc1=%.5f mrad --> A=%.3f, ψ=%.1f deg' % (c0*1e3, c1*1e3, A, phi*180/np.pi))
 
     def post_measurement(self):
-        self.result_dict = self.func_worker.outp
+        self.result_dict = self.meas_worker.outp
         self.restore_correctors()
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
@@ -154,28 +154,6 @@ class Main(QMainWindow):
 
     def measurement_progress(self, val):
         self.ui.progressBar.setValue(val)
-
-    def threaded_func(self, worker, args, kwargs, post_func):
-        # Written using example under https://realpython.com/python-pyqt-qthread/
-        if self.meas_lock:
-            raise RuntimeError('Cannot start new analysis while lock is active')
-
-        self.func_thread = QThread(parent=self)
-        self.func_worker = worker(*args, **kwargs)
-        self.func_worker.moveToThread(self.func_thread)
-
-        self.func_thread.started.connect(self.lock_meas)
-        self.func_thread.started.connect(self.func_worker.run)
-        self.func_thread.finished.connect(self.unlock_meas)
-
-        self.func_worker.progress.connect(self.measurement_progress)
-
-        self.func_worker.finished.connect(post_func)
-        self.func_worker.finished.connect(self.func_thread.quit)
-        self.func_worker.finished.connect(self.func_thread.wait)
-        self.func_worker.finished.connect(self.func_thread.deleteLater)
-
-        self.func_thread.start()
 
     def do_measurement(self):
         args = (
@@ -191,10 +169,13 @@ class Main(QMainWindow):
                 self.ui.SettleTime.value(),
                 self.ui.MeasurementTime.value(),
                 )
-        self.threaded_func(measurement.MeasWorker, args, {}, self.post_measurement)
+        start_funcs = (self.lock_meas, )
+        finish_funcs = (self.unlock_meas, self.post_measurement, )
+        progress_funcs = (self.measurement_progress, )
+        self.meas_thread, self.meas_worker = workers.threaded_func(self, self.meas_lock, measurement.MeasWorker, args, {}, start_funcs, finish_funcs, progress_funcs)
 
     def abort_measurement(self):
-        self.func_worker.abort = True
+        self.meas_worker.abort = True
 
     def lock_meas(self):
         self.ui.ResetButton.setEnabled(False)

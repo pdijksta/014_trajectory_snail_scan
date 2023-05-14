@@ -1,4 +1,4 @@
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
 
 class WorkerBase(QObject):
     """
@@ -24,4 +24,31 @@ class WorkerBase(QObject):
             print('Worker failed with following error message:\n%s' % e)
         finally:
             self.finished.emit()
+
+def threaded_func(parent, lock, worker, args, kwargs, start_funcs, finish_funcs, progress_funcs):
+    # Written using example under https://realpython.com/python-pyqt-qthread/
+    if lock:
+        raise RuntimeError('Cannot start new analysis while lock is active')
+
+    func_thread = QThread(parent=parent)
+    func_worker = worker(*args, **kwargs)
+    func_worker.moveToThread(func_thread)
+
+
+    for func in start_funcs:
+        func_thread.started.connect(func)
+    func_thread.started.connect(func_worker.run)
+
+    for func in finish_funcs:
+        func_worker.finished.connect(func)
+
+    for func in progress_funcs:
+        func_worker.progress.connect(func)
+
+    func_worker.finished.connect(func_thread.quit)
+    func_worker.finished.connect(func_thread.wait)
+    func_worker.finished.connect(func_thread.deleteLater)
+
+    func_thread.start()
+    return func_thread, func_worker
 
