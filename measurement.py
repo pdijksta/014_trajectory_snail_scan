@@ -38,11 +38,10 @@ class MeasWorker(WorkerBase):
 
         pulse_ene_mean = np.full([len(A_range), len(phi_range)], np.nan, dtype=float)
         pulse_ene_std = pulse_ene_mean.copy()
-
-
         bpm_names, init_orbit, init_pulse_energy = read(self, mi, measurement_time)
 
-        orbit_mean, orbit_std = None, None
+        orbit_mean = np.full([len(A_range), len(phi_range), init_orbit.shape[1]], np.nan, dtype=float)
+        orbit_std = orbit_mean.copy()
         ctr = 0
         n_meas = len(A_range)*len(phi_range)
         for n_A, A in enumerate(A_range):
@@ -51,7 +50,6 @@ class MeasWorker(WorkerBase):
             for n_phi, phi in enumerate(phi_range):
                 if self.abort:
                     break
-
 
                 delta_corr = delta_corr_arr[n_A, n_phi]
                 for corr, init, delta in zip(correctors, init_values, delta_corr):
@@ -63,15 +61,7 @@ class MeasWorker(WorkerBase):
                     if self.abort or dry_run:
                         break
 
-                bpm_names, this_orbit, this_pulse_energy = read(self, mi, measurement_time)
-
-                if ctr == 0:
-                    orbit_mean = np.full([len(A_range), len(phi_range), this_orbit.shape[1]], np.nan, dtype=float)
-                    orbit_std = orbit_mean.copy()
-
-                if self.abort:
-                    break
-
+                _, this_orbit, this_pulse_energy = read(self, mi, measurement_time)
                 pulse_ene_mean[n_A, n_phi] = np.mean(this_pulse_energy)
                 pulse_ene_std[n_A, n_phi] = np.std(this_pulse_energy)
                 orbit_mean[n_A, n_phi] = np.mean(this_orbit, axis=0)
@@ -113,6 +103,9 @@ class MeasWorker(WorkerBase):
                     'init_pulse_energy': np.mean(init_pulse_energy),
                     },
                 }
-        print('Measurement complete')
+        if self.abort:
+            print('Measurement aborted')
+        else:
+            print('Measurement complete')
         return result_dict
 
