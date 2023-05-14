@@ -1,4 +1,6 @@
+import os
 import subprocess
+from PyQt5 import QtCore, QtWidgets
 
 def send_to_desy_elog(author, title, severity, text, elog, image=None):
     """
@@ -50,4 +52,26 @@ def send_to_desy_elog(author, title, severity, text, elog, image=None):
     except:
         succeded = False
     return succeded
+
+def logbook(widget, text=""):
+    screenshot = get_screenshot(widget)
+    res = send_to_desy_elog(author='Dr. Snail', title='OrbitSnailScan', severity='INFO', text=text, elog='xfellog', image=screenshot)
+    if not res:
+        print('error during eLogBook sending')
+
+def log_screen(save_func, widget, auto_comment=""):
+    filename, comment, ok = save_func()
+    text = 'Data is saved in %s' % os.path.abspath(filename)
+    if ok:
+        text = comment + "\n" +"\n" + text
+    text = auto_comment + text
+    logbook(widget, text=text)
+
+def get_screenshot(window_widget):
+    screenshot_tmp = QtCore.QByteArray()
+    screeshot_buffer = QtCore.QBuffer(screenshot_tmp)
+    screeshot_buffer.open(QtCore.QIODevice.WriteOnly)
+    widget = QtWidgets.QWidget.grab(window_widget)
+    widget.save(screeshot_buffer, "png")
+    return screenshot_tmp.toBase64().data().decode()
 
