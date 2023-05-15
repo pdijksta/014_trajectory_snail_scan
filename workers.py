@@ -15,7 +15,6 @@ class WorkerBase(QObject):
         self.outp = None
         self.error = False
         self.abort = False
-        self.result_dict = {}
 
     def run(self):
         try:
