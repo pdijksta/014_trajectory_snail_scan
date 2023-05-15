@@ -79,7 +79,8 @@ def phase_space_ellipse(emittance, beta, alpha, n_points):
 def plot_Aphi_scan(result_dict, plot_handles=None):
     if plot_handles is None:
         rec_point = result_dict['input']['correctors'][1]
-        plot_handles = performance_figure(rec_point)
+        plane = result_dict['input']['plane']
+        plot_handles = performance_figure(rec_point, plane)
     fig, (sp_ellipse, sp_ellipse_norm, sp_A) = plot_handles
 
     emit_geo = result_dict['input']['emit_geo']
@@ -135,18 +136,18 @@ def plot_Aphi_scan(result_dict, plot_handles=None):
     for _sp in sp_ellipse, sp_A:
         _sp.legend(title='A')
 
-def performance_figure(rec_point, figsize=[10, 12]):
+def performance_figure(rec_point, plane, figsize=[10, 12]):
     fig = plt.figure(figsize=figsize)
     fig.subplots_adjust(left=LEFT, right=RIGHT, hspace=HSPACE, wspace=WSPACE, top=TOP, bottom=BOTTOM)
     sp_ellipse = plt.subplot(2, 2, 1)
     sp_ellipse.set_title('Phase space at %s' % rec_point)
-    sp_ellipse.set_xlabel('$\Delta x$ ($\mu$m)')
-    sp_ellipse.set_ylabel('$\Delta x\'$ ($\mu$rad)')
+    sp_ellipse.set_xlabel('$\Delta %s$ ($\mu$m)' % plane.lower())
+    sp_ellipse.set_ylabel('$\Delta %s\'$ ($\mu$rad)' % plane.lower())
 
     sp_ellipse_norm = plt.subplot(2, 2, 2)
     sp_ellipse_norm.set_title('Norm. phase space at %s' % rec_point)
-    sp_ellipse_norm.set_xlabel(r'$\Delta x/\sqrt{\epsilon\beta}$')
-    sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta x +\beta\Delta x\')/\sqrt{\epsilon\beta}$')
+    sp_ellipse_norm.set_xlabel(r'$\Delta %s/\sqrt{\epsilon\beta}$' % plane.lower())
+    sp_ellipse_norm.set_ylabel(r'$(\alpha\Delta %s +\beta\Delta %s\')/\sqrt{\epsilon\beta}$' % (plane.lower(), plane.lower()))
 
     sp_A = plt.subplot(2, 2, 3)
     sp_A.set_title('Recorded pulse energies')
@@ -216,7 +217,7 @@ def orbit_figure(correctors, minA, plane, figsize=[10, 12]):
     sp_orbit = fig.add_subplot(spec[1,:])
     sp_orbit.set_title('Orbit for A=%.1f' % minA)
     sp_orbit.set_xlabel('s (m)')
-    sp_orbit.set_ylabel('%s (mm)' % plane)
+    sp_orbit.set_ylabel('%s (mm)' % plane.lower())
 
     return fig, (sp_angles[0], sp_angles[1], sp_orbit)
 

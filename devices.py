@@ -21,14 +21,14 @@ class XFEL_interface:
         self.pulse_energy_ch = config.fast_xgm_ch[self.beamline]
 
     def read_ch(self, ch):
+        if self.dry_run and ch.endswith('ACTIVATE_FB'):
+            return 0
+
         if hasdoocs:
             return read(ch)['data']
 
         if ch.endswith('KICK_MRAD.SP'):
             return (np.random.rand()-0.5)*1e-2
-
-        if ch.endswith('ACTIVATE_FB'):
-            return 0
 
         if 'BEAM_ENERGY_MEASUREMENT' in ch:
             return 16385.

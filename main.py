@@ -155,6 +155,8 @@ class Main(QMainWindow):
         self.ui.progressBar.setValue(val)
 
     def do_measurement(self):
+        if self.mi.read_orbit() == 1:
+            raise ValueError('Orbit feedback is active!')
         args = (
                 self.dry_run,
                 self.tg,
@@ -204,16 +206,15 @@ class Main(QMainWindow):
 
     def new_figures(self):
         self.clear_plot_tabs()
-        rec_point = self.correctors[1]
-        self.performance_plot_handles = plot_results.performance_figure(rec_point)
+        correctors = self.result_dict['input']['correctors']
+        minA = self.result_dict['data']['A'].min()
+        plane = self.result_dict['input']['plane']
+        self.performance_plot_handles = plot_results.performance_figure(correctors[1], plane)
         canvas = FigureCanvasQTAgg(self.performance_plot_handles[0])
         toolbar = NavigationToolbar2QT(canvas, self)
         self.ui.PerformanceLayout.addWidget(canvas)
         self.ui.PerformanceLayout.addWidget(toolbar)
 
-        correctors = self.result_dict['input']['correctors']
-        minA = self.result_dict['data']['A'].min()
-        plane = self.result_dict['input']['plane']
         self.orbit_plot_handles = plot_results.orbit_figure(correctors, minA, plane)
         canvas = FigureCanvasQTAgg(self.orbit_plot_handles[0])
         toolbar = NavigationToolbar2QT(canvas, self)
