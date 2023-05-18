@@ -143,7 +143,6 @@ class Main(QMainWindow):
 
     def post_measurement(self):
         self.result_dict = self.meas_worker.outp
-        self.restore_correctors()
         self.new_figures()
         plot_results.plot_Aphi_scan(self.result_dict, plot_handles=self.performance_plot_handles)
         plot_results.plot_orbit(self.result_dict, plot_handles=self.orbit_plot_handles)
@@ -171,7 +170,7 @@ class Main(QMainWindow):
                 self.ui.MeasurementTime.value(),
                 )
         start_funcs = (self.lock_meas, )
-        finish_funcs = (self.unlock_meas, self.post_measurement, )
+        finish_funcs = (self.unlock_meas, self.restore_correctors, self.post_measurement, )
         progress_funcs = (self.measurement_progress, )
         if self.meas_lock:
             raise RuntimeError('Cannot start new analysis while lock is active')

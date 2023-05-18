@@ -190,14 +190,15 @@ def plot_orbit(result_dict, plot_handles=None):
         _sp.set_xlim(lim, -lim)
         _sp.legend(title='A')
 
-    bpmz = [int(x.split('.')[1]) for x in result_dict['data']['bpm_names']]
+    bpmz = np.array([int(x.split('.')[1]) for x in result_dict['data']['bpm_names']])
+    bpmsort = np.argsort(bpmz)
     for n_phi, phi in enumerate(phi_range):
 
         orbit_mean = result_dict['data']['orbit_mean'][0,n_phi]
         orbit_std = result_dict['data']['orbit_std'][0,n_phi]
 
         if np.any(~np.isnan(orbit_mean)):
-            sp_orbit.errorbar(bpmz, orbit_mean*1e3, yerr=orbit_std*1e3, label='%i' % (phi/np.pi*180))
+            sp_orbit.errorbar(bpmz[bpmsort], orbit_mean[bpmsort]*1e3, yerr=orbit_std[bpmsort]*1e3, label='%i' % (phi/np.pi*180))
     sp_orbit.legend(title='Phi')
 
 
