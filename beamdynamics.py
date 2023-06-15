@@ -63,7 +63,7 @@ class TwissGymnastics:
             A_arr = np.array([A_min])
         else:
             A_arr = np.linspace(A_min, A_max, A_points)
-        phi_arr = np.linspace(-np.pi, np.pi, phi_points+1)[:-1]
+        phi_arr = np.linspace(-np.pi, np.pi, phi_points)
         return A_arr, phi_arr
 
     def Aphi_range_to_corr(self, A_arr, phi_arr):
