@@ -114,7 +114,7 @@ class Main(QMainWindow):
                 (beta0, alpha0),
                 (beta1, alpha1),
                 ]):
-            corr_info = 'c%i %s: %+.4f; %.1f; %+.2f' % (n, self.correctors[0], self.init_values[n]*1e3, beta, alpha)
+            corr_info = 'c%i %s: %+.4f; %.1f; %+.2f' % (n, self.correctors[n], self.init_values[n]*1e3, beta, alpha)
             info.append(corr_info)
         self.ui.InformationLabel.setText('\n'.join(info))
         self.ui.InformationLabel.setFont(QtGui.QFont('Monospace'))
